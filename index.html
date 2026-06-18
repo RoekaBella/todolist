@@ -221,6 +221,240 @@
       text-align: center;
     }
 
+    /* ===== 추가 폼(composer) ===== */
+    .composer {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      padding: 14px 18px;
+    }
+
+    .composer .title-field {
+      flex: 1 1 220px;
+      min-width: 180px;
+    }
+
+    .field {
+      font: inherit;
+      color: var(--ink);
+      background: var(--bg-soft);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 9px 12px;
+      outline: 0;
+    }
+    .field::placeholder { color: var(--ink-3); }
+    .field:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(91, 108, 255, 0.12);
+    }
+    .field.invalid {
+      border-color: #FFB4C4;
+      box-shadow: 0 0 0 3px rgba(255, 180, 196, 0.25);
+    }
+
+    .composer .memo-field { flex: 1 1 200px; min-width: 160px; }
+    .composer select.field { cursor: pointer; }
+
+    .btn {
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: var(--radius-sm);
+      border: 1px solid transparent;
+      padding: 9px 16px;
+      transition: filter .12s ease, background .12s ease;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+    .btn-primary:hover { filter: brightness(1.05); }
+    .btn-ghost {
+      background: var(--bg-soft);
+      color: var(--ink-2);
+      border-color: var(--line);
+    }
+    .btn-ghost:hover { background: #F1F3F8; }
+
+    /* ===== 카드 목록 ===== */
+    .card-list {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .card {
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      box-shadow: 0 1px 2px rgba(31, 36, 51, 0.04);
+      transition: box-shadow .12s ease, opacity .12s ease;
+    }
+    .card:hover { box-shadow: var(--shadow); }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .cat-chip {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--ink-2);
+      border-radius: 999px;
+      padding: 2px 10px;
+      white-space: nowrap;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      word-break: break-word;
+    }
+    .card-memo {
+      font-size: 12.5px;
+      color: var(--ink-2);
+      margin-top: 4px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    /* 완료 카드: 취소선 + 흐림 */
+    .card.is-done {
+      opacity: 0.55;
+      background: var(--bg-soft);
+    }
+    .card.is-done .card-title { text-decoration: line-through; color: var(--ink-3); }
+    .card.is-done .card-memo { text-decoration: line-through; }
+
+    .card-actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-top: 10px;
+      padding-top: 9px;
+      border-top: 1px dashed var(--line);
+    }
+
+    .toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--ink-2);
+      cursor: pointer;
+      user-select: none;
+    }
+    .toggle input { accent-color: var(--accent); cursor: pointer; width: 15px; height: 15px; }
+
+    .card-actions .spacer { flex: 1; }
+
+    .icon-btn {
+      font: inherit;
+      font-size: 12px;
+      cursor: pointer;
+      background: transparent;
+      border: 0;
+      color: var(--ink-3);
+      padding: 2px 4px;
+      border-radius: 6px;
+    }
+    .icon-btn:hover { color: var(--ink); background: var(--bg-soft); }
+    .icon-btn.danger:hover { color: #E0567A; }
+
+    /* 빈 상태 */
+    .empty {
+      flex: 1;
+      border-radius: var(--radius-md);
+      background: var(--bg-soft);
+      border: 1px dashed var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--ink-3);
+      font-size: 13px;
+      padding: 24px 16px;
+      text-align: center;
+      min-height: 120px;
+    }
+
+    /* ===== 수정 모달 ===== */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(31, 36, 51, 0.32);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 50;
+    }
+    .modal-backdrop[hidden] { display: none; }
+
+    .modal {
+      width: 100%;
+      max-width: 440px;
+      background: var(--bg);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 20px 60px rgba(31, 36, 51, 0.22);
+      padding: 22px 24px;
+    }
+    .modal h3 { margin: 0 0 16px; font-size: 17px; }
+    .modal label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--ink-2);
+      margin-bottom: 14px;
+    }
+    .modal label .field { width: 100%; margin-top: 5px; }
+    .modal textarea.field { resize: vertical; min-height: 78px; line-height: 1.6; }
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    /* ===== 되돌리기 토스트 ===== */
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 28px;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: var(--ink);
+      color: #fff;
+      border-radius: var(--radius-md);
+      box-shadow: 0 12px 32px rgba(31, 36, 51, 0.28);
+      padding: 12px 18px;
+      font-size: 13.5px;
+      z-index: 60;
+    }
+    .toast[hidden] { display: none; }
+    .toast button {
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      background: transparent;
+      border: 0;
+      color: #B9C2FF;
+      padding: 2px 4px;
+    }
+    .toast button:hover { color: #fff; }
+
     @media (max-width: 920px) {
       .main { grid-template-columns: 1fr; }
       .board { grid-template-columns: 1fr; }
@@ -241,6 +475,17 @@
       </label>
     </header>
 
+    <!-- 할 일 추가 폼 -->
+    <form class="composer" id="composer" autocomplete="off">
+      <input class="field title-field" type="text" id="newTitle"
+             placeholder="할 일 제목을 입력하세요 (필수)" aria-label="제목" />
+      <select class="field" id="newCategory" aria-label="카테고리"></select>
+      <input class="field" type="date" id="newDate" aria-label="날짜" />
+      <input class="field memo-field" type="text" id="newMemo"
+             placeholder="상세 내용 (선택)" aria-label="상세 내용" />
+      <button class="btn btn-primary" type="submit">추가</button>
+    </form>
+
     <div class="main">
       <!-- 좌측 달력 자리 -->
       <aside class="panel">
@@ -250,34 +495,65 @@
 
       <!-- 우측 보드: 할 일 / 진행중 / 완료 -->
       <section class="board">
-        <div class="column">
+        <div class="column" data-status="todo">
           <div class="column-head">
             <span class="swatch todo"></span>
             <h2>할 일</h2>
-            <span class="count">0</span>
+            <span class="count" id="count-todo">0</span>
           </div>
-          <div class="column-body">비어 있음</div>
+          <div class="card-list" id="list-todo"></div>
         </div>
 
-        <div class="column">
+        <div class="column" data-status="doing">
           <div class="column-head">
             <span class="swatch doing"></span>
             <h2>진행중</h2>
-            <span class="count">0</span>
+            <span class="count" id="count-doing">0</span>
           </div>
-          <div class="column-body">비어 있음</div>
+          <div class="card-list" id="list-doing"></div>
         </div>
 
-        <div class="column">
+        <div class="column" data-status="done">
           <div class="column-head">
             <span class="swatch done"></span>
             <h2>완료</h2>
-            <span class="count">0</span>
+            <span class="count" id="count-done">0</span>
           </div>
-          <div class="column-body">비어 있음</div>
+          <div class="card-list" id="list-done"></div>
         </div>
       </section>
     </div>
+  </div>
+
+  <!-- 수정 모달 -->
+  <div class="modal-backdrop" id="editModal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="editHeading">
+      <h3 id="editHeading">할 일 수정</h3>
+      <form id="editForm">
+        <label>제목
+          <input class="field" type="text" id="editTitle" />
+        </label>
+        <label>카테고리
+          <select class="field" id="editCategory"></select>
+        </label>
+        <label>날짜
+          <input class="field" type="date" id="editDate" />
+        </label>
+        <label>상세 내용
+          <textarea class="field" id="editMemo" placeholder="상세 내용 (선택)"></textarea>
+        </label>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" type="button" id="editCancel">취소</button>
+          <button class="btn btn-primary" type="submit">저장</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 되돌리기 토스트 -->
+  <div class="toast" id="toast" hidden>
+    <span id="toastMsg"></span>
+    <button type="button" id="toastUndo">되돌리기</button>
   </div>
 
   <script>
@@ -373,8 +649,384 @@
     /* 초기화 */
     load();
 
+    /* =========================================================
+     * 데이터 조작 헬퍼 (Step 2)
+     * 모든 변경은 즉시 save() 후 render() 한다.
+     * ========================================================= */
+
+    const STATUSES = ["todo", "doing", "done"];
+
+    function nowISO() { return new Date().toISOString(); }
+
+    function getCategory(id) {
+      return state.categories.find((c) => c.id === id) || null;
+    }
+
+    /* selectedDate에 속한 할 일만 */
+    function tasksForDate(date) {
+      return state.tasks.filter((t) => t.date === date);
+    }
+
+    /* 특정 상태/날짜 그룹의 다음 order(최하단) */
+    function nextOrder(status, date) {
+      const peers = state.tasks.filter((t) => t.status === status && t.date === date);
+      return peers.reduce((max, t) => Math.max(max, t.order), -1) + 1;
+    }
+
+    /* 추가: status='todo'로 해당 날짜 '할 일' 최하단에 */
+    function addTask({ title, memo, categoryId, date }) {
+      const t = {
+        id: uid(),
+        title: title.trim(),
+        memo: (memo || "").trim(),
+        categoryId: categoryId,
+        status: "todo",
+        date: date,
+        order: nextOrder("todo", date),
+        createdAt: nowISO(),
+        updatedAt: nowISO(),
+      };
+      state.tasks.push(t);
+      save();
+      render();
+      return t;
+    }
+
+    /* 수정: 제목·상세·카테고리·날짜 편집 */
+    function updateTask(id, patch) {
+      const t = state.tasks.find((x) => x.id === id);
+      if (!t) return;
+      // 날짜가 바뀌면 '할 일' 기준으로 위치 재배치
+      if (patch.date && patch.date !== t.date) {
+        t.order = nextOrder(t.status, patch.date);
+      }
+      if (patch.title !== undefined) t.title = patch.title.trim();
+      if (patch.memo !== undefined) t.memo = patch.memo.trim();
+      if (patch.categoryId !== undefined) t.categoryId = patch.categoryId;
+      if (patch.date !== undefined) t.date = patch.date;
+      t.updatedAt = nowISO();
+      save();
+      render();
+    }
+
+    /* 삭제(되돌리기용으로 삭제된 항목 반환) */
+    function deleteTask(id) {
+      const idx = state.tasks.findIndex((x) => x.id === id);
+      if (idx === -1) return null;
+      const [removed] = state.tasks.splice(idx, 1);
+      save();
+      render();
+      return removed;
+    }
+
+    /* 되돌리기: 삭제했던 task 객체를 그대로 복원 */
+    function restoreTask(task) {
+      if (!task) return;
+      state.tasks.push(task);
+      save();
+      render();
+    }
+
+    /* 상태 전환: 대상 섹션 최하단으로 이동(order 갱신) */
+    function setStatus(id, status) {
+      const t = state.tasks.find((x) => x.id === id);
+      if (!t || t.status === status) return;
+      t.status = status;
+      t.order = nextOrder(status, t.date);
+      t.updatedAt = nowISO();
+      save();
+      render();
+    }
+
+    /* =========================================================
+     * UI 렌더 계층
+     * ========================================================= */
+
+    const el = {
+      composer: document.getElementById("composer"),
+      newTitle: document.getElementById("newTitle"),
+      newCategory: document.getElementById("newCategory"),
+      newDate: document.getElementById("newDate"),
+      newMemo: document.getElementById("newMemo"),
+      board: document.querySelector(".board"),
+      lists: {
+        todo: document.getElementById("list-todo"),
+        doing: document.getElementById("list-doing"),
+        done: document.getElementById("list-done"),
+      },
+      counts: {
+        todo: document.getElementById("count-todo"),
+        doing: document.getElementById("count-doing"),
+        done: document.getElementById("count-done"),
+      },
+      editModal: document.getElementById("editModal"),
+      editForm: document.getElementById("editForm"),
+      editTitle: document.getElementById("editTitle"),
+      editCategory: document.getElementById("editCategory"),
+      editDate: document.getElementById("editDate"),
+      editMemo: document.getElementById("editMemo"),
+      editCancel: document.getElementById("editCancel"),
+      toast: document.getElementById("toast"),
+      toastMsg: document.getElementById("toastMsg"),
+      toastUndo: document.getElementById("toastUndo"),
+    };
+
+    const EMPTY_TEXT = {
+      todo: "할 일을 추가해 보세요",
+      doing: "여기서 진행 중인 일을 모아 보세요",
+      done: "완료하면 여기에 쌓여요",
+    };
+
+    /* 카테고리 <select> 옵션 채우기 */
+    function fillCategoryOptions(selectEl, selectedId) {
+      selectEl.innerHTML = "";
+      state.categories
+        .slice()
+        .sort((a, b) => a.order - b.order)
+        .forEach((c) => {
+          const opt = document.createElement("option");
+          opt.value = c.id;
+          opt.textContent = c.name;
+          if (c.id === selectedId) opt.selected = true;
+          selectEl.appendChild(opt);
+        });
+    }
+
+    /* 카드 한 장 생성 */
+    function createCard(t) {
+      const cat = getCategory(t.categoryId);
+      const card = document.createElement("div");
+      card.className = "card" + (t.status === "done" ? " is-done" : "");
+      card.dataset.id = t.id;
+
+      const top = document.createElement("div");
+      top.className = "card-top";
+      if (cat) {
+        const chip = document.createElement("span");
+        chip.className = "cat-chip";
+        chip.textContent = cat.name;
+        chip.style.background = cat.color;
+        top.appendChild(chip);
+      }
+      const title = document.createElement("span");
+      title.className = "card-title";
+      title.textContent = t.title;
+      top.appendChild(title);
+      card.appendChild(top);
+
+      if (t.memo) {
+        const memo = document.createElement("div");
+        memo.className = "card-memo";
+        memo.textContent = t.memo;
+        card.appendChild(memo);
+      }
+
+      const actions = document.createElement("div");
+      actions.className = "card-actions";
+
+      // 진행중 토글
+      const doingLabel = document.createElement("label");
+      doingLabel.className = "toggle";
+      const doing = document.createElement("input");
+      doing.type = "checkbox";
+      doing.dataset.action = "doing";
+      doing.checked = t.status === "doing";
+      doingLabel.appendChild(doing);
+      doingLabel.appendChild(document.createTextNode("진행중"));
+      actions.appendChild(doingLabel);
+
+      // 완료 체크박스
+      const doneLabel = document.createElement("label");
+      doneLabel.className = "toggle";
+      const done = document.createElement("input");
+      done.type = "checkbox";
+      done.dataset.action = "done";
+      done.checked = t.status === "done";
+      doneLabel.appendChild(done);
+      doneLabel.appendChild(document.createTextNode("완료"));
+      actions.appendChild(doneLabel);
+
+      const spacer = document.createElement("div");
+      spacer.className = "spacer";
+      actions.appendChild(spacer);
+
+      const editBtn = document.createElement("button");
+      editBtn.type = "button";
+      editBtn.className = "icon-btn";
+      editBtn.dataset.action = "edit";
+      editBtn.textContent = "수정";
+      actions.appendChild(editBtn);
+
+      const delBtn = document.createElement("button");
+      delBtn.type = "button";
+      delBtn.className = "icon-btn danger";
+      delBtn.dataset.action = "delete";
+      delBtn.textContent = "삭제";
+      actions.appendChild(delBtn);
+
+      card.appendChild(actions);
+      return card;
+    }
+
+    /* 전체 렌더 */
+    function render() {
+      const list = tasksForDate(state.selectedDate);
+      STATUSES.forEach((status) => {
+        const container = el.lists[status];
+        const items = list
+          .filter((t) => t.status === status)
+          .sort((a, b) => a.order - b.order);
+        el.counts[status].textContent = items.length;
+        container.innerHTML = "";
+        if (items.length === 0) {
+          const empty = document.createElement("div");
+          empty.className = "empty";
+          empty.textContent = EMPTY_TEXT[status];
+          container.appendChild(empty);
+        } else {
+          items.forEach((t) => container.appendChild(createCard(t)));
+        }
+      });
+    }
+
+    /* ===== 추가 폼 ===== */
+    function syncComposerDefaults() {
+      el.newDate.value = state.selectedDate;
+      fillCategoryOptions(el.newCategory, state.categories[0] && state.categories[0].id);
+    }
+
+    el.composer.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const title = el.newTitle.value.trim();
+      if (!title) {
+        el.newTitle.classList.add("invalid");
+        el.newTitle.placeholder = "제목을 입력해야 추가할 수 있어요";
+        el.newTitle.focus();
+        return;
+      }
+      el.newTitle.classList.remove("invalid");
+      addTask({
+        title,
+        memo: el.newMemo.value,
+        categoryId: el.newCategory.value || (state.categories[0] && state.categories[0].id),
+        date: el.newDate.value || state.selectedDate,
+      });
+      // 입력란 정리(카테고리·날짜는 유지해 연속 입력 편하게)
+      el.newTitle.value = "";
+      el.newMemo.value = "";
+      el.newTitle.focus();
+    });
+
+    el.newTitle.addEventListener("input", () => {
+      if (el.newTitle.value.trim()) el.newTitle.classList.remove("invalid");
+    });
+
+    /* ===== 카드 상호작용(이벤트 위임) ===== */
+    el.board.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-action]");
+      if (!btn) return;
+      const cardEl = e.target.closest(".card");
+      if (!cardEl) return;
+      const id = cardEl.dataset.id;
+      const action = btn.dataset.action;
+
+      if (action === "edit") openEditModal(id);
+      else if (action === "delete") handleDelete(id);
+    });
+
+    el.board.addEventListener("change", (e) => {
+      const input = e.target.closest("input[data-action]");
+      if (!input) return;
+      const cardEl = e.target.closest(".card");
+      if (!cardEl) return;
+      const id = cardEl.dataset.id;
+      const action = input.dataset.action;
+
+      if (action === "done") {
+        // 완료가 우선: 켜면 done, 끄면 todo
+        setStatus(id, input.checked ? "done" : "todo");
+      } else if (action === "doing") {
+        setStatus(id, input.checked ? "doing" : "todo");
+      }
+    });
+
+    /* ===== 삭제 + 되돌리기 토스트 ===== */
+    let undoTimer = null;
+    function handleDelete(id) {
+      const removed = deleteTask(id);
+      if (!removed) return;
+      showUndoToast(removed);
+    }
+
+    function showUndoToast(task) {
+      clearTimeout(undoTimer);
+      el.toastMsg.textContent = `'${task.title}' 삭제됨`;
+      el.toast.hidden = false;
+      const onUndo = () => {
+        clearTimeout(undoTimer);
+        el.toast.hidden = true;
+        el.toastUndo.removeEventListener("click", onUndo);
+        restoreTask(task);
+      };
+      el.toastUndo.addEventListener("click", onUndo);
+      undoTimer = setTimeout(() => {
+        el.toast.hidden = true;
+        el.toastUndo.removeEventListener("click", onUndo);
+      }, 5000);
+    }
+
+    /* ===== 수정 모달 ===== */
+    let editingId = null;
+    function openEditModal(id) {
+      const t = state.tasks.find((x) => x.id === id);
+      if (!t) return;
+      editingId = id;
+      el.editTitle.value = t.title;
+      el.editMemo.value = t.memo || "";
+      el.editDate.value = t.date;
+      fillCategoryOptions(el.editCategory, t.categoryId);
+      el.editModal.hidden = false;
+      el.editTitle.focus();
+    }
+    function closeEditModal() {
+      el.editModal.hidden = true;
+      editingId = null;
+    }
+    el.editForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const title = el.editTitle.value.trim();
+      if (!title) {
+        el.editTitle.classList.add("invalid");
+        el.editTitle.focus();
+        return;
+      }
+      el.editTitle.classList.remove("invalid");
+      updateTask(editingId, {
+        title,
+        memo: el.editMemo.value,
+        categoryId: el.editCategory.value,
+        date: el.editDate.value,
+      });
+      closeEditModal();
+    });
+    el.editCancel.addEventListener("click", closeEditModal);
+    el.editModal.addEventListener("click", (e) => {
+      if (e.target === el.editModal) closeEditModal();
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !el.editModal.hidden) closeEditModal();
+    });
+
+    /* 첫 렌더 */
+    syncComposerDefaults();
+    render();
+
     // 디버깅/다음 단계 연동을 위해 노출
-    window.TodoApp = { STORAGE_KEY, uid, load, save, get state() { return state; } };
+    window.TodoApp = {
+      STORAGE_KEY, uid, load, save, render,
+      addTask, updateTask, deleteTask, setStatus,
+      get state() { return state; },
+    };
   </script>
 </body>
 </html>
