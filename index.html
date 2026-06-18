@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>To-Do</title>
+  <style>
+    /* ===== 디자인 토큰 ===== */
+    :root {
+      /* 배경 */
+      --bg: #FFFFFF;
+      --bg-soft: #FAFBFD;
+
+      /* 잉크(텍스트) */
+      --ink: #1F2433;
+      --ink-2: #5B6478;
+      --ink-3: #9AA2B4;
+
+      /* 강조 */
+      --accent: #5B6CFF;
+
+      /* 카테고리 파스텔 */
+      --cat-work: #DCEBFF;   /* 업무 */
+      --cat-life: #FFF1C2;   /* 일상 */
+      --cat-study: #FFE0EC;  /* 공부 */
+      --cat-etc: #E8ECF2;    /* 기타 */
+
+      /* 보더 / 그림자 */
+      --line: #EDF0F5;
+      --shadow: 0 1px 2px rgba(31, 36, 51, 0.04), 0 8px 24px rgba(31, 36, 51, 0.05);
+
+      /* 라운드 */
+      --radius-lg: 18px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
+
+      /* 간격 */
+      --gap: 20px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+    }
+
+    body {
+      background: var(--bg-soft);
+      color: var(--ink);
+      /* 한글 가독성: 시스템 한글 폰트 폴백 + 넉넉한 줄간 */
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR",
+                   "Malgun Gothic", "맑은 고딕", system-ui, -apple-system,
+                   "Segoe UI", Roboto, sans-serif;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+      letter-spacing: -0.01em;
+    }
+
+    /* ===== 레이아웃 골격 ===== */
+    .app {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 24px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      gap: var(--gap);
+    }
+
+    /* 상단 바 */
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      padding: 16px 22px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 18px;
+      white-space: nowrap;
+    }
+
+    .brand .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .search {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-soft);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      padding: 9px 14px;
+      color: var(--ink-3);
+      font-size: 14px;
+    }
+
+    .search input {
+      flex: 1;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--ink);
+      font: inherit;
+    }
+
+    .search input::placeholder { color: var(--ink-3); }
+
+    /* 본문: 좌 달력 / 우 보드 */
+    .main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: var(--gap);
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      padding: 20px;
+    }
+
+    .panel-title {
+      margin: 0 0 14px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink-2);
+      letter-spacing: 0.02em;
+    }
+
+    /* 좌측 달력 자리 */
+    .calendar-placeholder {
+      height: 280px;
+      border: 1px dashed var(--line);
+      border-radius: var(--radius-md);
+      background: var(--bg-soft);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--ink-3);
+      font-size: 13px;
+    }
+
+    /* 우측 보드: 3섹션 */
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--gap);
+    }
+
+    .column {
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      min-height: 360px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .column-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .column-head h2 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .column-head .count {
+      font-size: 12px;
+      color: var(--ink-3);
+      background: var(--bg-soft);
+      border-radius: 999px;
+      padding: 1px 9px;
+    }
+
+    .swatch {
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+    }
+    .swatch.todo  { background: var(--cat-work); }
+    .swatch.doing { background: var(--cat-life); }
+    .swatch.done  { background: var(--cat-etc); }
+
+    .column-body {
+      flex: 1;
+      border-radius: var(--radius-md);
+      background: var(--bg-soft);
+      border: 1px dashed var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--ink-3);
+      font-size: 13px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    @media (max-width: 920px) {
+      .main { grid-template-columns: 1fr; }
+      .board { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- 상단 바: 제목 + 검색창 자리 -->
+    <header class="topbar">
+      <div class="brand">
+        <span class="dot"></span>
+        <span>To-Do</span>
+      </div>
+      <label class="search">
+        <span>🔍</span>
+        <input type="text" placeholder="할 일 검색…" disabled />
+      </label>
+    </header>
+
+    <div class="main">
+      <!-- 좌측 달력 자리 -->
+      <aside class="panel">
+        <p class="panel-title">달력</p>
+        <div class="calendar-placeholder" id="calendarSlot">달력 영역</div>
+      </aside>
+
+      <!-- 우측 보드: 할 일 / 진행중 / 완료 -->
+      <section class="board">
+        <div class="column">
+          <div class="column-head">
+            <span class="swatch todo"></span>
+            <h2>할 일</h2>
+            <span class="count">0</span>
+          </div>
+          <div class="column-body">비어 있음</div>
+        </div>
+
+        <div class="column">
+          <div class="column-head">
+            <span class="swatch doing"></span>
+            <h2>진행중</h2>
+            <span class="count">0</span>
+          </div>
+          <div class="column-body">비어 있음</div>
+        </div>
+
+        <div class="column">
+          <div class="column-head">
+            <span class="swatch done"></span>
+            <h2>완료</h2>
+            <span class="count">0</span>
+          </div>
+          <div class="column-body">비어 있음</div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    "use strict";
+
+    /* =========================================================
+     * 데이터 계층 (Step 1)
+     * 스키마
+     *   Category { id, name, color, order }
+     *   Task     { id, title, memo, categoryId,
+     *              status('todo'|'doing'|'done'),
+     *              date('YYYY-MM-DD'), order, createdAt, updatedAt }
+     * ========================================================= */
+
+    const STORAGE_KEY = "todoapp.v1";
+
+    /* id 생성기: crypto.randomUUID 우선, 미지원 환경 폴백 */
+    function uid() {
+      if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+        return crypto.randomUUID();
+      }
+      // 폴백: RFC4122 v4 형태의 유사 UUID
+      if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
+        const b = crypto.getRandomValues(new Uint8Array(16));
+        b[6] = (b[6] & 0x0f) | 0x40;
+        b[8] = (b[8] & 0x3f) | 0x80;
+        const h = [...b].map((x) => x.toString(16).padStart(2, "0"));
+        return `${h[0]}${h[1]}${h[2]}${h[3]}-${h[4]}${h[5]}-${h[6]}${h[7]}-${h[8]}${h[9]}-${h[10]}${h[11]}${h[12]}${h[13]}${h[14]}${h[15]}`;
+      }
+      // 최후 폴백
+      return "id-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10);
+    }
+
+    /* 오늘 날짜를 'YYYY-MM-DD'(로컬 기준)로 반환 */
+    function todayStr() {
+      const d = new Date();
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${y}-${m}-${day}`;
+    }
+
+    /* 기본 카테고리 4종 시드 */
+    function defaultCategories() {
+      return [
+        { id: uid(), name: "업무", color: "#DCEBFF", order: 0 },
+        { id: uid(), name: "일상", color: "#FFF1C2", order: 1 },
+        { id: uid(), name: "공부", color: "#FFE0EC", order: 2 },
+        { id: uid(), name: "기타", color: "#E8ECF2", order: 3 },
+      ];
+    }
+
+    /* 앱 상태 (메모리) */
+    let state = null;
+
+    /* localStorage 읽기 */
+    function load() {
+      let parsed = null;
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) parsed = JSON.parse(raw);
+      } catch (e) {
+        console.warn("저장 데이터를 읽지 못했습니다. 새로 초기화합니다.", e);
+        parsed = null;
+      }
+
+      if (parsed && Array.isArray(parsed.categories) && Array.isArray(parsed.tasks)) {
+        state = parsed;
+        // selectedDate 누락 방어
+        if (!state.selectedDate) state.selectedDate = todayStr();
+      } else {
+        // 최초 실행: 기본값 생성 후 즉시 저장
+        state = {
+          version: 1,
+          categories: defaultCategories(),
+          tasks: [],
+          selectedDate: todayStr(),
+        };
+        save();
+      }
+      return state;
+    }
+
+    /* localStorage 쓰기 — 모든 데이터 변경 시 즉시 호출 */
+    function save() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {
+        console.error("저장에 실패했습니다.", e);
+      }
+    }
+
+    /* 초기화 */
+    load();
+
+    // 디버깅/다음 단계 연동을 위해 노출
+    window.TodoApp = { STORAGE_KEY, uid, load, save, get state() { return state; } };
+  </script>
+</body>
+</html>
