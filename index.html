@@ -455,6 +455,100 @@
     }
     .toast button:hover { color: #fff; }
 
+    /* ===== 사이드바(달력 + 카테고리) ===== */
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: var(--gap);
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .panel-head .panel-title { margin: 0; }
+
+    /* 카테고리 목록 */
+    .cat-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .cat-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: var(--bg-soft);
+    }
+    .cat-row .dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 5px;
+      flex: 0 0 auto;
+      box-shadow: inset 0 0 0 1px rgba(31, 36, 51, 0.06);
+    }
+    .cat-row .name {
+      flex: 1;
+      font-size: 13.5px;
+      font-weight: 600;
+      word-break: break-word;
+    }
+    .icon-btn:disabled {
+      opacity: 0.32;
+      cursor: not-allowed;
+    }
+    .icon-btn:disabled:hover { color: var(--ink-3); background: transparent; }
+    .add-cat-btn {
+      margin-top: 12px;
+      width: 100%;
+    }
+
+    /* 팔레트 선택 */
+    .field-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--ink-2);
+      margin-bottom: 8px;
+    }
+    .palette {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .swatch-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      border: 2px solid transparent;
+      cursor: pointer;
+      padding: 0;
+      box-shadow: inset 0 0 0 1px rgba(31, 36, 51, 0.07);
+      transition: transform .1s ease;
+    }
+    .swatch-btn:hover { transform: scale(1.06); }
+    .swatch-btn[aria-pressed="true"] {
+      border-color: var(--accent);
+      box-shadow: inset 0 0 0 1px rgba(31, 36, 51, 0.07), 0 0 0 3px rgba(91, 108, 255, 0.14);
+    }
+
+    /* 위험 버튼 / 확인 메시지 */
+    .btn-danger { background: #E0567A; color: #fff; }
+    .btn-danger:hover { filter: brightness(1.05); }
+    .confirm-msg {
+      font-size: 14px;
+      color: var(--ink-2);
+      line-height: 1.7;
+      margin: 0 0 20px;
+    }
+    .confirm-msg strong { color: var(--ink); }
+
     @media (max-width: 920px) {
       .main { grid-template-columns: 1fr; }
       .board { grid-template-columns: 1fr; }
@@ -487,10 +581,20 @@
     </form>
 
     <div class="main">
-      <!-- 좌측 달력 자리 -->
-      <aside class="panel">
-        <p class="panel-title">달력</p>
-        <div class="calendar-placeholder" id="calendarSlot">달력 영역</div>
+      <!-- 좌측 사이드바: 달력 + 카테고리 -->
+      <aside class="sidebar">
+        <div class="panel">
+          <p class="panel-title">달력</p>
+          <div class="calendar-placeholder" id="calendarSlot">달력 영역</div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <p class="panel-title">카테고리</p>
+          </div>
+          <div class="cat-list" id="catList"></div>
+          <button class="btn btn-ghost add-cat-btn" type="button" id="addCatBtn">+ 카테고리 추가</button>
+        </div>
       </aside>
 
       <!-- 우측 보드: 할 일 / 진행중 / 완료 -->
@@ -547,6 +651,36 @@
           <button class="btn btn-primary" type="submit">저장</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- 카테고리 추가/수정 모달 -->
+  <div class="modal-backdrop" id="categoryModal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="categoryHeading">
+      <h3 id="categoryHeading">카테고리 추가</h3>
+      <form id="categoryForm">
+        <label>이름
+          <input class="field" type="text" id="categoryName" placeholder="카테고리 이름" />
+        </label>
+        <span class="field-label">색 (팔레트에서 선택)</span>
+        <div class="palette" id="palette"></div>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" type="button" id="categoryCancel">취소</button>
+          <button class="btn btn-primary" type="submit">저장</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 삭제 확인 모달 -->
+  <div class="modal-backdrop" id="confirmModal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="confirmHeading">
+      <h3 id="confirmHeading">삭제 확인</h3>
+      <p class="confirm-msg" id="confirmMessage"></p>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" type="button" id="confirmCancel">취소</button>
+        <button class="btn btn-danger" type="button" id="confirmOk">삭제</button>
+      </div>
     </div>
   </div>
 
@@ -738,6 +872,59 @@
       render();
     }
 
+    /* ----- 카테고리 ----- */
+
+    /* 사전 정의된 파스텔 팔레트(톤 일관성 유지 — 임의 색 입력 금지) */
+    const PALETTE = [
+      "#DCEBFF", // 블루
+      "#FFF1C2", // 옐로
+      "#FFE0EC", // 핑크
+      "#E8ECF2", // 그레이
+      "#DDF3E4", // 민트
+      "#EADCFF", // 라벤더
+      "#FFE6D2", // 피치
+      "#D6F1F5", // 스카이
+    ];
+
+    function nextCategoryOrder() {
+      return state.categories.reduce((max, c) => Math.max(max, c.order), -1) + 1;
+    }
+
+    /* 해당 카테고리에 속한 할 일들 */
+    function tasksInCategory(id) {
+      return state.tasks.filter((t) => t.categoryId === id);
+    }
+
+    function addCategory(name, color) {
+      const c = { id: uid(), name: name.trim(), color, order: nextCategoryOrder() };
+      state.categories.push(c);
+      save();
+      refreshCategoryUI();
+      return c;
+    }
+
+    /* 수정: 색을 바꾸면 카드는 렌더 시 getCategory().color를 참조하므로 자동 갱신 */
+    function updateCategory(id, patch) {
+      const c = getCategory(id);
+      if (!c) return;
+      if (patch.name !== undefined) c.name = patch.name.trim();
+      if (patch.color !== undefined) c.color = patch.color;
+      save();
+      refreshCategoryUI();
+      render(); // 소속 할 일의 색·카테고리명 즉시 반영
+    }
+
+    /* 삭제: 소속 할 일도 함께 삭제. 최소 1개는 남겨야 함 */
+    function deleteCategory(id) {
+      if (state.categories.length <= 1) return false;
+      state.tasks = state.tasks.filter((t) => t.categoryId !== id);
+      state.categories = state.categories.filter((c) => c.id !== id);
+      save();
+      refreshCategoryUI();
+      render();
+      return true;
+    }
+
     /* =========================================================
      * UI 렌더 계층
      * ========================================================= */
@@ -769,6 +956,20 @@
       toast: document.getElementById("toast"),
       toastMsg: document.getElementById("toastMsg"),
       toastUndo: document.getElementById("toastUndo"),
+      // 카테고리 관리
+      catList: document.getElementById("catList"),
+      addCatBtn: document.getElementById("addCatBtn"),
+      categoryModal: document.getElementById("categoryModal"),
+      categoryForm: document.getElementById("categoryForm"),
+      categoryHeading: document.getElementById("categoryHeading"),
+      categoryName: document.getElementById("categoryName"),
+      categoryCancel: document.getElementById("categoryCancel"),
+      palette: document.getElementById("palette"),
+      // 삭제 확인
+      confirmModal: document.getElementById("confirmModal"),
+      confirmMessage: document.getElementById("confirmMessage"),
+      confirmOk: document.getElementById("confirmOk"),
+      confirmCancel: document.getElementById("confirmCancel"),
     };
 
     const EMPTY_TEXT = {
@@ -798,6 +999,8 @@
       const card = document.createElement("div");
       card.className = "card" + (t.status === "done" ? " is-done" : "");
       card.dataset.id = t.id;
+      // 카테고리 색을 옅은 좌측 보더 틴트로(과하지 않게)
+      if (cat) card.style.borderLeft = "3px solid " + cat.color;
 
       const top = document.createElement("div");
       top.className = "card-top";
@@ -889,10 +1092,183 @@
       });
     }
 
+    /* ===== 카테고리 관리 UI ===== */
+
+    /* 카테고리 목록 패널 렌더 */
+    function renderCategoryList() {
+      const wrap = el.catList;
+      wrap.innerHTML = "";
+      const lockDelete = state.categories.length <= 1;
+      state.categories
+        .slice()
+        .sort((a, b) => a.order - b.order)
+        .forEach((c) => {
+          const row = document.createElement("div");
+          row.className = "cat-row";
+          row.dataset.id = c.id;
+
+          const dot = document.createElement("span");
+          dot.className = "dot";
+          dot.style.background = c.color;
+          row.appendChild(dot);
+
+          const name = document.createElement("span");
+          name.className = "name";
+          name.textContent = c.name;
+          row.appendChild(name);
+
+          const edit = document.createElement("button");
+          edit.type = "button";
+          edit.className = "icon-btn";
+          edit.dataset.action = "cat-edit";
+          edit.textContent = "수정";
+          row.appendChild(edit);
+
+          const del = document.createElement("button");
+          del.type = "button";
+          del.className = "icon-btn danger";
+          del.dataset.action = "cat-delete";
+          del.textContent = "삭제";
+          if (lockDelete) {
+            del.disabled = true;
+            del.title = "카테고리는 최소 1개가 필요합니다";
+          }
+          row.appendChild(del);
+
+          wrap.appendChild(row);
+        });
+    }
+
+    /* 추가 폼의 카테고리 select를 현재 목록으로 동기화(선택 유지) */
+    function refreshCategorySelects() {
+      const prev = el.newCategory.value;
+      const keep = state.categories.some((c) => c.id === prev)
+        ? prev
+        : (state.categories[0] && state.categories[0].id);
+      fillCategoryOptions(el.newCategory, keep);
+    }
+
+    /* 카테고리 변경 시 목록 + 폼 select 동시 갱신 */
+    function refreshCategoryUI() {
+      renderCategoryList();
+      refreshCategorySelects();
+    }
+
+    /* 카테고리 모달(추가/수정 공용) */
+    let editingCategoryId = null;
+    let selectedColor = PALETTE[0];
+
+    function renderPalette(selected) {
+      el.palette.innerHTML = "";
+      PALETTE.forEach((color) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "swatch-btn";
+        b.style.background = color;
+        b.dataset.color = color;
+        b.setAttribute("aria-pressed", String(color === selected));
+        b.setAttribute("aria-label", color);
+        el.palette.appendChild(b);
+      });
+    }
+
+    el.palette.addEventListener("click", (e) => {
+      const b = e.target.closest(".swatch-btn");
+      if (!b) return;
+      selectedColor = b.dataset.color;
+      [...el.palette.children].forEach((c) =>
+        c.setAttribute("aria-pressed", String(c === b))
+      );
+    });
+
+    function openCategoryModal(id) {
+      editingCategoryId = id || null;
+      if (id) {
+        const c = getCategory(id);
+        el.categoryHeading.textContent = "카테고리 수정";
+        el.categoryName.value = c.name;
+        selectedColor = c.color;
+      } else {
+        el.categoryHeading.textContent = "카테고리 추가";
+        el.categoryName.value = "";
+        selectedColor = PALETTE[0];
+      }
+      el.categoryName.classList.remove("invalid");
+      renderPalette(selectedColor);
+      el.categoryModal.hidden = false;
+      el.categoryName.focus();
+    }
+    function closeCategoryModal() {
+      el.categoryModal.hidden = true;
+      editingCategoryId = null;
+    }
+
+    el.addCatBtn.addEventListener("click", () => openCategoryModal(null));
+    el.categoryCancel.addEventListener("click", closeCategoryModal);
+    el.categoryModal.addEventListener("click", (e) => {
+      if (e.target === el.categoryModal) closeCategoryModal();
+    });
+
+    el.categoryForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const name = el.categoryName.value.trim();
+      if (!name) {
+        el.categoryName.classList.add("invalid");
+        el.categoryName.focus();
+        return;
+      }
+      el.categoryName.classList.remove("invalid");
+      if (editingCategoryId) updateCategory(editingCategoryId, { name, color: selectedColor });
+      else addCategory(name, selectedColor);
+      closeCategoryModal();
+    });
+
+    /* 카테고리 목록 상호작용 */
+    el.catList.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-action]");
+      if (!btn || btn.disabled) return;
+      const row = e.target.closest(".cat-row");
+      if (!row) return;
+      const id = row.dataset.id;
+      if (btn.dataset.action === "cat-edit") openCategoryModal(id);
+      else if (btn.dataset.action === "cat-delete") handleCategoryDelete(id);
+    });
+
+    /* 삭제: 소속 할 일 개수를 정확히 알리는 확인 단계 */
+    function handleCategoryDelete(id) {
+      if (state.categories.length <= 1) return; // 최소 1개 보장
+      const cat = getCategory(id);
+      const n = tasksInCategory(id).length;
+      const msg =
+        n > 0
+          ? `'${cat.name}' 카테고리를 삭제하면 이 카테고리의 할 일 ${n}개가 함께 삭제됩니다. 계속할까요?`
+          : `'${cat.name}' 카테고리를 삭제할까요?`;
+      confirmDialog(msg).then((ok) => {
+        if (ok) deleteCategory(id);
+      });
+    }
+
+    /* ===== 삭제 확인 모달(Promise 기반) ===== */
+    let confirmResolver = null;
+    function confirmDialog(message) {
+      el.confirmMessage.textContent = message;
+      el.confirmModal.hidden = false;
+      return new Promise((resolve) => { confirmResolver = resolve; });
+    }
+    function settleConfirm(value) {
+      el.confirmModal.hidden = true;
+      if (confirmResolver) { confirmResolver(value); confirmResolver = null; }
+    }
+    el.confirmOk.addEventListener("click", () => settleConfirm(true));
+    el.confirmCancel.addEventListener("click", () => settleConfirm(false));
+    el.confirmModal.addEventListener("click", (e) => {
+      if (e.target === el.confirmModal) settleConfirm(false);
+    });
+
     /* ===== 추가 폼 ===== */
     function syncComposerDefaults() {
       el.newDate.value = state.selectedDate;
-      fillCategoryOptions(el.newCategory, state.categories[0] && state.categories[0].id);
+      refreshCategorySelects();
     }
 
     el.composer.addEventListener("submit", (e) => {
@@ -1014,10 +1390,14 @@
       if (e.target === el.editModal) closeEditModal();
     });
     document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && !el.editModal.hidden) closeEditModal();
+      if (e.key !== "Escape") return;
+      if (!el.confirmModal.hidden) settleConfirm(false);
+      else if (!el.categoryModal.hidden) closeCategoryModal();
+      else if (!el.editModal.hidden) closeEditModal();
     });
 
     /* 첫 렌더 */
+    renderCategoryList();
     syncComposerDefaults();
     render();
 
@@ -1025,6 +1405,7 @@
     window.TodoApp = {
       STORAGE_KEY, uid, load, save, render,
       addTask, updateTask, deleteTask, setStatus,
+      addCategory, updateCategory, deleteCategory, tasksInCategory,
       get state() { return state; },
     };
   </script>
