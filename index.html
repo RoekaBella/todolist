@@ -149,7 +149,13 @@
       padding: 3px 10px;
     }
     .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
-    .manage-btn { padding: 6px 14px; }
+    .legend-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--ink-2);
+    }
+    /* [관리] 버튼: 카테고리 칩 글자와 동일 크기로 축소 */
+    .manage-btn { font-size: 12px; font-weight: 600; padding: 3px 10px; }
 
     /* 달력 중앙 정렬 */
     .calendar-center {
@@ -201,7 +207,8 @@
       margin-bottom: 14px;
     }
     .column-head .head-spacer { flex: 1; }
-    .add-task-btn { padding: 6px 14px; }
+    /* [+ 추가] 버튼: 카테고리 칩 글자와 동일 크기로 축소 */
+    .add-task-btn { font-size: 12px; font-weight: 600; padding: 3px 10px; }
 
     .column-head h2 {
       margin: 0;
@@ -327,6 +334,15 @@
       flex-direction: column;
       gap: 4px;
     }
+    /* 그룹 내 순서 번호(각 그룹 1부터) */
+    .card-no {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--ink-3);
+      min-width: 1.3em;
+      text-align: right;
+      flex: 0 0 auto;
+    }
 
     /* 가운데: 제목 + 상세(말줄임 금지, 줄바꿈 허용) */
     .card-main { flex: 1 1 auto; min-width: 0; }
@@ -365,16 +381,18 @@
       white-space: nowrap;
     }
 
+    /* 상태 컨트롤: 연하게 — 시각 우선순위는 제목·내용에 둠 */
     .toggle {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      font-size: 12px;
-      color: var(--ink-2);
+      font-size: 11px;
+      font-weight: 400;
+      color: var(--ink-3);
       cursor: pointer;
       user-select: none;
     }
-    .toggle input { accent-color: var(--accent); cursor: pointer; width: 15px; height: 15px; }
+    .toggle input { accent-color: var(--ink-3); cursor: pointer; width: 14px; height: 14px; }
 
     .icon-btn {
       font: inherit;
@@ -575,6 +593,8 @@
     /* 드래그 중: 텍스트 선택 방지, 빈 상태 숨김, 대상 칸 하이라이트 */
     .board.dragging { user-select: none; }
     .board.dragging .empty { display: none; }
+    /* 빈 그룹도 드롭 가능하도록 최소 높이 확보 */
+    .board.dragging .card-list { min-height: 64px; }
     .board.dragging .card-list.drop-active {
       background: rgba(91, 108, 255, 0.05);
       border-radius: var(--radius-md);
@@ -663,7 +683,7 @@
     .cal-cell.selected .cal-dot { background: #fff; }
 
     /* ===== 전체 검색 (작은 고정 폭, 우측) ===== */
-    .search-wrap { position: relative; flex: 0 0 200px; width: 200px; max-width: 33%; }
+    .search-wrap { position: relative; flex: 0 0 260px; width: 260px; max-width: 40%; }
     .search { width: 100%; }
     .search-results {
       position: absolute;
@@ -747,27 +767,7 @@
 </head>
 <body>
   <div class="app">
-    <!-- ① 최상단: 카테고리 색 범례 + 관리 (좌) / 축소 검색 (우) -->
-    <header class="topbar">
-      <div class="topbar-left">
-        <div class="brand">
-          <span class="dot"></span>
-          <span>To-Do</span>
-        </div>
-        <div class="cat-legend" id="catLegend" aria-label="카테고리 색 범례"></div>
-        <button class="btn btn-ghost manage-btn" type="button" id="manageCatBtn">관리</button>
-      </div>
-      <div class="search-wrap">
-        <label class="search">
-          <span aria-hidden="true">🔍</span>
-          <input type="text" id="searchInput" placeholder="검색…"
-                 aria-label="할 일 검색" autocomplete="off" />
-        </label>
-        <div class="search-results" id="searchResults" role="listbox" hidden></div>
-      </div>
-    </header>
-
-    <!-- ② 중앙: 달력 (가운데 정렬) -->
+    <!-- ① 맨 위: 달력 (가운데 정렬) -->
     <section class="calendar-center">
       <div class="panel cal-panel">
         <div class="cal-head">
@@ -781,6 +781,27 @@
         <div class="cal-grid" id="calGrid"></div>
       </div>
     </section>
+
+    <!-- ② 카테고리 라벨 + 색 범례 + 관리 (좌) / 검색 (우) -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="brand">
+          <span class="dot"></span>
+          <span>To-Do</span>
+        </div>
+        <span class="legend-label">Category</span>
+        <div class="cat-legend" id="catLegend" aria-label="Category 색 범례"></div>
+        <button class="btn btn-ghost manage-btn" type="button" id="manageCatBtn">관리</button>
+      </div>
+      <div class="search-wrap">
+        <label class="search">
+          <span aria-hidden="true">🔍</span>
+          <input type="text" id="searchInput" placeholder="검색…"
+                 aria-label="할 일 검색" autocomplete="off" />
+        </label>
+        <div class="search-results" id="searchResults" role="listbox" hidden></div>
+      </div>
+    </header>
 
     <!-- ③ 하단: 할 일 → 진행중 → 완료 (전폭 한 줄 카드, 항상 펼침) -->
     <section class="board" id="board">
@@ -1202,12 +1223,18 @@
         });
     }
 
-    /* 카드 한 장 생성 — 전폭 한 줄: [좌 색점+컨트롤][중앙 제목+상세][우 수정/삭제] */
-    function createCard(t) {
+    /* 카드 한 장 생성 — 전폭 한 줄: [번호][좌 색점+컨트롤][중앙 제목+상세][우 수정/삭제] */
+    function createCard(t, num) {
       const cat = getCategory(t.categoryId);
       const card = document.createElement("div");
       card.className = "card" + (t.status === "done" ? " is-done" : "");
       card.dataset.id = t.id;
+
+      // ── 그룹 내 순서 번호(1부터) ──
+      const no = document.createElement("span");
+      no.className = "card-no";
+      no.textContent = num;
+      card.appendChild(no);
 
       // ── 좌측: 카테고리 색 점 + 상태 컨트롤(완료, 진행중) ──
       const left = document.createElement("div");
@@ -1302,7 +1329,8 @@
           empty.textContent = EMPTY_TEXT[status];
           container.appendChild(empty);
         } else {
-          items.forEach((t) => container.appendChild(createCard(t)));
+          // 그룹 내부에서 1부터 번호 부여(정렬 순서 기준)
+          items.forEach((t, i) => container.appendChild(createCard(t, i + 1)));
         }
       });
       renderCalendar();                       // 날짜별 점 표시 최신화
@@ -1556,10 +1584,11 @@
         grabX: 0,
         grabY: 0,
       };
-      card.addEventListener("pointermove", onDragMove);
-      card.addEventListener("pointerup", onDragEnd);
-      card.addEventListener("pointercancel", onDragEnd);
-      try { card.setPointerCapture(e.pointerId); } catch (_) {}
+      // 캡처/리페어런팅에 의존하지 않도록 이동·종료는 window에서 처리한다.
+      // (카드를 DOM에서 분리하면 pointer capture가 풀려 드래그가 멈추는 버그를 회피)
+      window.addEventListener("pointermove", onDragMove);
+      window.addEventListener("pointerup", onDragEnd);
+      window.addEventListener("pointercancel", onDragEnd);
     });
 
     function startDrag(e) {
@@ -1568,7 +1597,7 @@
       drag.grabX = e.clientX - r.left;
       drag.grabY = e.clientY - r.top;
 
-      // 자리 표시 박스를 원래 위치에 삽입
+      // 자리 표시 박스를 원래 위치(카드 앞)에 삽입
       const ph = document.createElement("div");
       ph.className = "drag-placeholder";
       ph.style.height = r.height + "px";
@@ -1576,8 +1605,7 @@
       drag.currentList = card.parentElement;
       card.parentElement.insertBefore(ph, card);
 
-      // 카드를 body로 빼내 플로팅 처리
-      document.body.appendChild(card);
+      // 카드를 '제자리에서' 플로팅 처리(DOM 위치는 그대로 — 캡처 유실 방지)
       card.classList.add("dragging-card");
       card.style.width = r.width + "px";
       card.style.left = r.left + "px";
@@ -1601,7 +1629,7 @@
       drag.card.style.left = e.clientX - drag.grabX + "px";
       drag.card.style.top = e.clientY - drag.grabY + "px";
 
-      // 포인터 아래의 카드 목록 탐색
+      // 포인터 아래의 카드 목록 탐색(플로팅 카드는 pointer-events:none 이라 무시됨)
       const under = document.elementFromPoint(e.clientX, e.clientY);
       const list = under && under.closest ? under.closest(".card-list") : null;
       if (list) {
@@ -1614,10 +1642,12 @@
       }
     }
 
-    /* 포인터 Y 위치에 맞춰 placeholder를 카드 사이/끝에 삽입 */
+    /* 포인터 Y 위치에 맞춰 placeholder를 카드 사이/끝에 삽입(드래그 중 카드는 제외) */
     function positionPlaceholder(list, y) {
       const ph = drag.placeholder;
-      const cards = [...list.children].filter((c) => c.classList.contains("card"));
+      const cards = [...list.children].filter(
+        (c) => c.classList.contains("card") && c !== drag.card
+      );
       let before = null;
       for (const c of cards) {
         const r = c.getBoundingClientRect();
@@ -1635,10 +1665,9 @@
       const d = drag;
       drag = null;
 
-      d.card.removeEventListener("pointermove", onDragMove);
-      d.card.removeEventListener("pointerup", onDragEnd);
-      d.card.removeEventListener("pointercancel", onDragEnd);
-      try { d.card.releasePointerCapture(d.pointerId); } catch (_) {}
+      window.removeEventListener("pointermove", onDragMove);
+      window.removeEventListener("pointerup", onDragEnd);
+      window.removeEventListener("pointercancel", onDragEnd);
 
       if (!d.started) return; // 단순 탭/클릭 — 아무 변화 없음
 
@@ -1646,11 +1675,13 @@
       const list = d.placeholder.parentElement;
       commitDrag(d.id, list, d.placeholder);
 
-      // 시각 정리(render()가 카드를 새로 그리므로 임시 노드만 제거)
+      // 시각 정리(render()가 카드를 새로 그리므로 임시 노드만 정리)
       el.board.classList.remove("dragging");
       if (d.currentList) d.currentList.classList.remove("drop-active");
       d.placeholder.remove();
-      d.card.remove();
+      // 플로팅 스타일 해제(render()가 곧 카드를 다시 그림)
+      d.card.classList.remove("dragging-card");
+      d.card.removeAttribute("style");
     }
 
     /* 놓인 칸의 DOM 순서대로 status/order를 확정하고 저장 */
@@ -1660,11 +1691,14 @@
       if (!dragged) return;
       const prevStatus = dragged.status;
 
-      // 타깃 칸의 새 순서(placeholder = 드래그된 카드 위치)
+      // 타깃 칸의 새 순서(placeholder = 드래그된 카드 위치).
+      // 드래그 중인 카드는 제자리에 남아 있으므로 id로 제외(중복 방지).
       const ids = [];
       [...list.children].forEach((node) => {
         if (node === placeholder) ids.push(draggedId);
-        else if (node.classList.contains("card")) ids.push(node.dataset.id);
+        else if (node.classList.contains("card") && node.dataset.id !== draggedId) {
+          ids.push(node.dataset.id);
+        }
       });
 
       dragged.status = targetStatus;
