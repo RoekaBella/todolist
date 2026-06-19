@@ -5,7 +5,8 @@
       "Bash(git add *)",
       "Bash(git commit *)",
       "mcp__Claude_Preview__preview_start",
-      "Bash(npx --version)"
+      "Bash(npx --version)",
+      "PowerShell(try { $r = Invoke-WebRequest -Uri \"http://localhost:8123/index.html\" -UseBasicParsing -TimeoutSec 5; \"STATUS: $\\($r.StatusCode\\)\"; \"BYTES: $\\($r.RawContentLength\\)\"; if \\($r.Content -match 'id=\"calGrid\"'\\) { \"calGrid: present\" }; if \\($r.Content -match 'id=\"searchInput\"'\\) { \"searchInput: present\" } } catch { \"ERR: $\\($_.Exception.Message\\)\" })"
     ]
   }
 }

@@ -581,6 +581,165 @@
       border-radius: var(--radius-md);
     }
 
+    /* ===== 달력 ===== */
+    .cal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .cal-title { font-weight: 700; font-size: 14.5px; }
+    .cal-nav {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: var(--bg-soft);
+      color: var(--ink-2);
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .cal-nav:hover { background: #F1F3F8; color: var(--ink); }
+
+    .cal-week {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      margin-bottom: 6px;
+    }
+    .cal-week span {
+      text-align: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--ink-3);
+      padding: 2px 0;
+    }
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+    .cal-cell {
+      position: relative;
+      aspect-ratio: 1 / 1;
+      border: 1px solid transparent;
+      border-radius: 9px;
+      background: transparent;
+      color: var(--ink);
+      font: inherit;
+      font-size: 12.5px;
+      cursor: pointer;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .12s ease;
+    }
+    .cal-cell:hover { background: var(--bg-soft); }
+    .cal-cell.muted { color: var(--ink-3); opacity: 0.5; }
+    .cal-cell.today {
+      font-weight: 800;
+      color: var(--accent);
+      box-shadow: inset 0 0 0 1.5px var(--accent);
+    }
+    .cal-cell.selected {
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+      box-shadow: none;
+    }
+    .cal-dot {
+      position: absolute;
+      bottom: 5px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+    .cal-cell.selected .cal-dot { background: #fff; }
+
+    /* ===== 전체 검색 ===== */
+    .search-wrap { position: relative; flex: 1; }
+    .search { width: 100%; }
+    .search-results {
+      position: absolute;
+      top: calc(100% + 10px);
+      left: 0;
+      right: 0;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow);
+      max-height: 60vh;
+      overflow-y: auto;
+      z-index: 40;
+      padding: 6px;
+    }
+    .search-results[hidden] { display: none; }
+    .sr-item {
+      display: block;
+      width: 100%;
+      text-align: left;
+      background: transparent;
+      border: 0;
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      cursor: pointer;
+      font: inherit;
+    }
+    .sr-item:hover { background: var(--bg-soft); }
+    .sr-title { font-size: 13.5px; font-weight: 600; color: var(--ink); }
+    .sr-title.done { text-decoration: line-through; color: var(--ink-3); }
+    .sr-meta {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 5px;
+      font-size: 11.5px;
+      color: var(--ink-2);
+    }
+    .sr-status {
+      background: var(--bg-soft);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 1px 9px;
+      color: var(--ink-2);
+    }
+    .sr-date { color: var(--ink-3); }
+    .search-empty {
+      padding: 20px 14px;
+      text-align: center;
+      color: var(--ink-3);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    /* ===== 접근성: 항상 보이는 포커스 링 ===== */
+    :focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    .cal-cell:focus-visible,
+    .sr-item:focus-visible {
+      outline-offset: -2px;
+    }
+
+    /* 모션 최소화 선호 존중 */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        transition-duration: 0.001ms !important;
+        animation-duration: 0.001ms !important;
+        scroll-behavior: auto !important;
+      }
+      .card.dragging-card { transform: none !important; }
+    }
+
     @media (max-width: 920px) {
       .main { grid-template-columns: 1fr; }
       .board { grid-template-columns: 1fr; }
@@ -595,10 +754,14 @@
         <span class="dot"></span>
         <span>To-Do</span>
       </div>
-      <label class="search">
-        <span>🔍</span>
-        <input type="text" placeholder="할 일 검색…" disabled />
-      </label>
+      <div class="search-wrap">
+        <label class="search">
+          <span aria-hidden="true">🔍</span>
+          <input type="text" id="searchInput" placeholder="제목·내용 전체 검색…"
+                 aria-label="할 일 검색" autocomplete="off" />
+        </label>
+        <div class="search-results" id="searchResults" role="listbox" hidden></div>
+      </div>
     </header>
 
     <!-- 할 일 추가 폼 -->
@@ -616,8 +779,15 @@
       <!-- 좌측 사이드바: 달력 + 카테고리 -->
       <aside class="sidebar">
         <div class="panel">
-          <p class="panel-title">달력</p>
-          <div class="calendar-placeholder" id="calendarSlot">달력 영역</div>
+          <div class="cal-head">
+            <button class="cal-nav" type="button" id="calPrev" aria-label="이전 달">‹</button>
+            <span class="cal-title" id="calTitle"></span>
+            <button class="cal-nav" type="button" id="calNext" aria-label="다음 달">›</button>
+          </div>
+          <div class="cal-week" aria-hidden="true">
+            <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
+          </div>
+          <div class="cal-grid" id="calGrid"></div>
         </div>
 
         <div class="panel">
@@ -1002,7 +1172,17 @@
       confirmMessage: document.getElementById("confirmMessage"),
       confirmOk: document.getElementById("confirmOk"),
       confirmCancel: document.getElementById("confirmCancel"),
+      // 달력
+      calTitle: document.getElementById("calTitle"),
+      calGrid: document.getElementById("calGrid"),
+      calPrev: document.getElementById("calPrev"),
+      calNext: document.getElementById("calNext"),
+      // 검색
+      searchInput: document.getElementById("searchInput"),
+      searchResults: document.getElementById("searchResults"),
     };
+
+    const STATUS_LABEL = { todo: "할 일", doing: "진행중", done: "완료" };
 
     const EMPTY_TEXT = {
       todo: "할 일을 추가해 보세요",
@@ -1122,6 +1302,8 @@
           items.forEach((t) => container.appendChild(createCard(t)));
         }
       });
+      renderCalendar();                       // 날짜별 점 표시 최신화
+      if (searchActive()) renderSearch(el.searchInput.value); // 검색 열린 상태면 갱신
     }
 
     /* ===== 카테고리 관리 UI ===== */
@@ -1579,6 +1761,164 @@
       if (!el.confirmModal.hidden) settleConfirm(false);
       else if (!el.categoryModal.hidden) closeCategoryModal();
       else if (!el.editModal.hidden) closeEditModal();
+      else if (!el.searchResults.hidden) closeSearch();
+    });
+
+    /* ===== 달력 ===== */
+
+    /* Date -> 'YYYY-MM-DD'(로컬) */
+    function fmtDate(d) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${y}-${m}-${day}`;
+    }
+    /* 'YYYY-MM-DD' -> { year, month(0-11) } */
+    function monthOf(dateStr) {
+      const [y, m] = dateStr.split("-").map(Number);
+      return { year: y, month: m - 1 };
+    }
+    function addMonth(view, delta) {
+      const d = new Date(view.year, view.month + delta, 1);
+      return { year: d.getFullYear(), month: d.getMonth() };
+    }
+
+    let calView = monthOf(state.selectedDate);
+
+    function renderCalendar() {
+      const { year, month } = calView;
+      el.calTitle.textContent = `${year}년 ${month + 1}월`;
+
+      // 날짜별 할 일 개수
+      const counts = {};
+      state.tasks.forEach((t) => { counts[t.date] = (counts[t.date] || 0) + 1; });
+
+      const today = todayStr();
+      const startDow = new Date(year, month, 1).getDay(); // 0=일
+      const start = new Date(year, month, 1 - startDow);  // 첫 칸(이전 달 spillover 포함)
+
+      el.calGrid.innerHTML = "";
+      for (let i = 0; i < 42; i++) {
+        const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
+        const ds = fmtDate(d);
+        const cell = document.createElement("button");
+        cell.type = "button";
+        cell.className = "cal-cell";
+        if (d.getMonth() !== month) cell.classList.add("muted");
+        if (ds === today) cell.classList.add("today");
+        if (ds === state.selectedDate) cell.classList.add("selected");
+        cell.dataset.date = ds;
+        if (ds === state.selectedDate) cell.setAttribute("aria-current", "date");
+        cell.textContent = d.getDate();
+        if (counts[ds]) {
+          const dot = document.createElement("span");
+          dot.className = "cal-dot";
+          dot.title = `할 일 ${counts[ds]}개`;
+          cell.appendChild(dot);
+        }
+        el.calGrid.appendChild(cell);
+      }
+    }
+
+    /* selectedDate 변경: 보드·달력·추가폼 날짜를 함께 전환 */
+    function setSelectedDate(date) {
+      state.selectedDate = date;
+      save();
+      calView = monthOf(date);
+      el.newDate.value = date;
+      render();
+    }
+
+    el.calGrid.addEventListener("click", (e) => {
+      const cell = e.target.closest(".cal-cell");
+      if (!cell) return;
+      setSelectedDate(cell.dataset.date);
+    });
+    el.calPrev.addEventListener("click", () => { calView = addMonth(calView, -1); renderCalendar(); });
+    el.calNext.addEventListener("click", () => { calView = addMonth(calView, 1); renderCalendar(); });
+
+    /* ===== 전체 검색 ===== */
+
+    function searchActive() {
+      return el.searchInput && el.searchInput.value.trim() !== "";
+    }
+    function closeSearch() {
+      el.searchResults.hidden = true;
+      el.searchResults.innerHTML = "";
+    }
+
+    function renderSearch(raw) {
+      const q = (raw || "").trim().toLowerCase();
+      if (!q) { closeSearch(); return; }
+
+      const matches = state.tasks
+        .filter(
+          (t) =>
+            (t.title || "").toLowerCase().includes(q) ||
+            (t.memo || "").toLowerCase().includes(q)
+        )
+        .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : a.order - b.order));
+
+      el.searchResults.innerHTML = "";
+      if (matches.length === 0) {
+        const em = document.createElement("div");
+        em.className = "search-empty";
+        em.textContent = `'${raw.trim()}'에 일치하는 할 일이 없습니다`;
+        el.searchResults.appendChild(em);
+      } else {
+        matches.forEach((t) => {
+          const cat = getCategory(t.categoryId);
+          const item = document.createElement("button");
+          item.type = "button";
+          item.className = "sr-item";
+          item.setAttribute("role", "option");
+          item.dataset.date = t.date;
+
+          const title = document.createElement("div");
+          title.className = "sr-title" + (t.status === "done" ? " done" : "");
+          title.textContent = t.title;
+          item.appendChild(title);
+
+          const meta = document.createElement("div");
+          meta.className = "sr-meta";
+          if (cat) {
+            const chip = document.createElement("span");
+            chip.className = "cat-chip";
+            chip.textContent = cat.name;
+            chip.style.background = cat.color;
+            meta.appendChild(chip);
+          }
+          const st = document.createElement("span");
+          st.className = "sr-status";
+          st.textContent = STATUS_LABEL[t.status];
+          meta.appendChild(st);
+
+          const dt = document.createElement("span");
+          dt.className = "sr-date";
+          dt.textContent = t.date;
+          meta.appendChild(dt);
+
+          item.appendChild(meta);
+          el.searchResults.appendChild(item);
+        });
+      }
+      el.searchResults.hidden = false;
+    }
+
+    el.searchInput.addEventListener("input", () => renderSearch(el.searchInput.value));
+    el.searchInput.addEventListener("focus", () => {
+      if (searchActive()) renderSearch(el.searchInput.value);
+    });
+    el.searchResults.addEventListener("click", (e) => {
+      const item = e.target.closest(".sr-item");
+      if (!item) return;
+      setSelectedDate(item.dataset.date);
+      el.searchInput.value = "";
+      closeSearch();
+    });
+    // 바깥 클릭 시 결과 닫기
+    document.addEventListener("click", (e) => {
+      if (!el.searchResults.hidden && !e.target.closest(".search-wrap")) closeSearch();
     });
 
     /* 첫 렌더 */
