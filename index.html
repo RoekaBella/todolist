@@ -786,6 +786,16 @@
       .card.dragging-card { transform: none !important; }
     }
 
+    /* 앱 제목(페이지 최상단, 가운데 정렬) */
+    .app-title {
+      margin: 0;
+      text-align: center;
+      font-size: 28px;
+      font-weight: 600;
+      color: var(--ink);
+      letter-spacing: -0.02em;
+    }
+
     @media (max-width: 560px) {
       .search-wrap { flex: 0 0 150px; width: 150px; }
       .card-actions { flex-direction: column; gap: 6px; }
@@ -794,6 +804,9 @@
 </head>
 <body>
   <div class="app">
+    <!-- 앱 제목 -->
+    <h1 class="app-title">To-Do List</h1>
+
     <!-- ① 맨 위: 달력 (가운데 정렬) -->
     <section class="calendar-center">
       <div class="panel cal-panel">
