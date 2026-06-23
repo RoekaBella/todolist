@@ -795,6 +795,13 @@
       color: var(--ink);
       letter-spacing: -0.02em;
     }
+    /* 제작자 표기(제목 아래, 작고 옅게) */
+    .app-credit {
+      margin: 2px 0 0;
+      text-align: center;
+      font-size: 12px;
+      color: var(--ink-3);
+    }
 
     @media (max-width: 560px) {
       .search-wrap { flex: 0 0 150px; width: 150px; }
@@ -805,7 +812,8 @@
 <body>
   <div class="app">
     <!-- 앱 제목 -->
-    <h1 class="app-title">To-Do List</h1>
+    <h1 class="app-title">To Do List</h1>
+    <p class="app-credit">© 2026 roekabella</p>
 
     <!-- ① 맨 위: 달력 (가운데 정렬) -->
     <section class="calendar-center">
