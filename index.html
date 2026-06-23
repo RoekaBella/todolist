@@ -786,19 +786,19 @@
       .card.dragging-card { transform: none !important; }
     }
 
-    /* 앱 제목(페이지 최상단, 가운데 정렬) */
+    /* 제목+제작자명 로고 블록(하나의 묶음으로 가운데 정렬) */
+    .logo { text-align: center; }
     .app-title {
       margin: 0;
-      text-align: center;
-      font-size: 28px;
-      font-weight: 600;
+      font-size: 40px;
+      font-weight: 800;
       color: var(--ink);
-      letter-spacing: -0.02em;
+      letter-spacing: -0.04em;
+      line-height: 1.05;
     }
-    /* 제작자 표기(제목 아래, 작고 옅게) */
+    /* 제작자 표기(제목 바로 아래 밀착, 작고 옅게) */
     .app-credit {
-      margin: 2px 0 0;
-      text-align: center;
+      margin: 1px 0 0;
       font-size: 12px;
       color: var(--ink-3);
     }
@@ -850,9 +850,11 @@
 </head>
 <body>
   <div class="app">
-    <!-- 앱 제목 -->
-    <h1 class="app-title">To Do List</h1>
-    <p class="app-credit">© 2026 roekabella</p>
+    <!-- 앱 제목 + 제작자명(하나의 로고 블록) -->
+    <div class="logo">
+      <h1 class="app-title">To Do List</h1>
+      <p class="app-credit">© 2026 roekabella</p>
+    </div>
     <div class="title-actions">
       <button class="btn btn-ghost share-btn" type="button" id="shareBtn">🔗 공유</button>
     </div>
