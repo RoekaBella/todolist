@@ -814,17 +814,17 @@
       font-size: 12px;
       color: var(--ink-3);
     }
-    /* 공유 버튼(제목 아래, 작은 알약형) */
-    .title-actions {
-      display: flex;
-      justify-content: center;
-      margin-top: 8px;
-    }
+    /* 공유 버튼(우측 최상단 고정, 작은 알약형) */
     .btn.share-btn {
+      position: fixed;
+      top: 14px;
+      right: 14px;
+      z-index: 45;
       font-size: 12px;
       font-weight: 600;
-      padding: 5px 14px;
+      padding: 5px 12px;
       border-radius: 999px;
+      box-shadow: var(--shadow);
     }
     /* QR 공유 모달 */
     .share-modal { max-width: 340px; text-align: center; }
@@ -861,14 +861,14 @@
   </style>
 </head>
 <body>
+  <!-- 공유 버튼: 우측 최상단 고정 -->
+  <button class="btn btn-ghost share-btn" type="button" id="shareBtn">🔗 공유</button>
+
   <div class="app">
     <!-- 앱 제목 + 제작자명(하나의 로고 블록) -->
     <div class="logo">
       <h1 class="app-title">To Do List</h1>
       <p class="app-credit">© 2026 roekabella</p>
-    </div>
-    <div class="title-actions">
-      <button class="btn btn-ghost share-btn" type="button" id="shareBtn">🔗 공유</button>
     </div>
 
     <!-- ① 맨 위: 달력 (가운데 정렬) -->
