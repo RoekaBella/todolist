@@ -4,6 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>To-Do</title>
+
+  <!-- PWA (모두 상대경로) -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#5B6CFF" />
+  <link rel="icon" href="icon-192.png" />
+  <!-- iOS 사파리 대응 -->
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="To Do List" />
+  <meta name="mobile-web-app-capable" content="yes" />
+
   <style>
     /* ===== 디자인 토큰 ===== */
     :root {
@@ -787,7 +799,7 @@
     }
 
     /* 제목+제작자명 로고 블록(하나의 묶음으로 가운데 정렬) */
-    .logo { text-align: center; }
+    .logo { text-align: center; margin-top: 28px; }
     .app-title {
       margin: 0;
       font-size: 40px;
@@ -2407,6 +2419,15 @@
       addCategory, updateCategory, deleteCategory, tasksInCategory,
       get state() { return state; },
     };
+  </script>
+
+  <!-- PWA 서비스워커 등록(상대경로 — /todolist/ 하위에서 정상 등록) -->
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("sw.js").catch((e) => console.warn("SW 등록 실패", e));
+      });
+    }
   </script>
 </body>
 </html>
