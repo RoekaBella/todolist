@@ -56,6 +56,8 @@
       margin: 0;
       padding: 0;
       height: 100%;
+      overflow-x: hidden;       /* 가로 스크롤(삐져나감) 방지 */
+      max-width: 100%;
     }
 
     body {
@@ -854,8 +856,17 @@
       margin-bottom: 16px;
     }
 
-    @media (max-width: 560px) {
-      .search-wrap { flex: 0 0 150px; width: 150px; }
+    /* ===== 모바일(≤600px): 상단 세로 적층 ===== */
+    @media (max-width: 600px) {
+      /* 1행: 카테고리줄 / 2행: 검색(전폭) — 좌우 2분할 해제 */
+      .topbar { flex-direction: column; align-items: stretch; gap: 10px; }
+      .topbar-left { width: 100%; flex: 1 1 auto; }
+      .search-wrap { width: 100%; max-width: none; flex: 1 1 auto; }
+      .search { width: 100%; }
+
+      /* 공유 버튼: 항상 화면 안, 약간 축소 */
+      .btn.share-btn { top: 10px; right: 10px; padding: 4px 10px; font-size: 11px; }
+
       .card-actions { flex-direction: column; gap: 6px; }
     }
   </style>

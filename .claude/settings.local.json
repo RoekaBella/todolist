@@ -11,7 +11,8 @@
       "PowerShell(git branch -M main)",
       "PowerShell(git fetch origin 2>&1)",
       "PowerShell(\"=== fetch ===\")",
-      "PowerShell(\"=== remote branches ===\")"
+      "PowerShell(\"=== remote branches ===\")",
+      "WebFetch(domain:roekabella.github.io)"
     ]
   }
 }
