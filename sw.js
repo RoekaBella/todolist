@@ -1,5 +1,5 @@
 /* To Do List 서비스워커 — 앱셸 캐시(상대경로) + 오프라인 동작 */
-const CACHE = "todolist-v7";
+const CACHE = "todolist-v8";
 const ASSETS = [
   "./",
   "./index.html",
