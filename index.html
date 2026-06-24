@@ -186,7 +186,7 @@
       justify-content: center;
     }
     .cal-panel {
-      width: 340px;
+      width: 460px;
       max-width: 100%;
     }
 
@@ -570,6 +570,28 @@
       width: 100%;
     }
 
+    /* 데이터 백업 영역 */
+    .backup-box {
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+    }
+    .backup-title {
+      margin: 0 0 8px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--ink-2);
+    }
+    .backup-row {
+      display: flex;
+      gap: 8px;
+    }
+    .backup-row .btn {
+      flex: 1;
+      font-size: 12.5px;
+      padding: 7px 8px;
+    }
+
     /* 팔레트 선택 */
     .field-label {
       display: block;
@@ -690,12 +712,14 @@
       background: transparent;
       color: var(--ink);
       font: inherit;
-      font-size: 12.5px;
+      font-size: 13px;
       cursor: pointer;
       padding: 0;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
+      gap: 1px;
       transition: background .12s ease;
     }
     .cal-cell:hover { background: var(--bg-soft); }
@@ -711,17 +735,16 @@
       font-weight: 700;
       box-shadow: none;
     }
-    .cal-dot {
-      position: absolute;
-      bottom: 5px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 5px;
-      height: 5px;
-      border-radius: 50%;
-      background: var(--accent);
+    .cal-day { line-height: 1; }
+    /* 날짜 아래 할 일 개수(작고 옅게) */
+    .cal-count {
+      font-size: 9.5px;
+      line-height: 1;
+      font-weight: 600;
+      color: var(--ink-3);
     }
-    .cal-cell.selected .cal-dot { background: #fff; }
+    .cal-cell.today .cal-count { color: var(--accent); }
+    .cal-cell.selected .cal-count { color: rgba(255, 255, 255, 0.9); }
 
     /* ===== 전체 검색 (작은 고정 폭, 우측) ===== */
     .search-wrap { position: relative; flex: 0 0 260px; width: 260px; max-width: 40%; }
@@ -1043,6 +1066,16 @@
       <h3 id="manageHeading">카테고리 관리</h3>
       <div class="cat-list" id="catList"></div>
       <button class="btn btn-ghost add-cat-btn" type="button" id="addCatBtn">+ 카테고리 추가</button>
+
+      <div class="backup-box">
+        <p class="backup-title">데이터 백업</p>
+        <div class="backup-row">
+          <button class="btn btn-ghost" type="button" id="exportBtn">⬇️ 백업 내보내기</button>
+          <button class="btn btn-ghost" type="button" id="importBtn">⬆️ 백업 가져오기</button>
+        </div>
+        <input type="file" id="importFile" accept="application/json,.json" hidden />
+      </div>
+
       <div class="modal-actions">
         <button class="btn btn-ghost" type="button" id="manageClose">닫기</button>
       </div>
@@ -1722,10 +1755,14 @@
       });
     }
 
-    /* ===== 삭제 확인 모달(Promise 기반) ===== */
+    /* ===== 확인 모달(Promise 기반, 삭제/덮어쓰기 등 공용) ===== */
     let confirmResolver = null;
-    function confirmDialog(message) {
+    function confirmDialog(message, opts) {
+      opts = opts || {};
       el.confirmMessage.textContent = message;
+      document.getElementById("confirmHeading").textContent = opts.heading || "삭제 확인";
+      el.confirmOk.textContent = opts.okLabel || "삭제";
+      el.confirmOk.className = "btn " + (opts.okClass || "btn-danger");
       el.confirmModal.hidden = false;
       return new Promise((resolve) => { confirmResolver = resolve; });
     }
@@ -2061,12 +2098,17 @@
         if (ds === state.selectedDate) cell.classList.add("selected");
         cell.dataset.date = ds;
         if (ds === state.selectedDate) cell.setAttribute("aria-current", "date");
-        cell.textContent = d.getDate();
+        const day = document.createElement("span");
+        day.className = "cal-day";
+        day.textContent = d.getDate();
+        cell.appendChild(day);
+        // 그 날짜의 할 일 개수(완료 포함). 0이면 표시하지 않음
         if (counts[ds]) {
-          const dot = document.createElement("span");
-          dot.className = "cal-dot";
-          dot.title = `할 일 ${counts[ds]}개`;
-          cell.appendChild(dot);
+          const cnt = document.createElement("span");
+          cnt.className = "cal-count";
+          cnt.textContent = counts[ds];
+          cnt.title = `할 일 ${counts[ds]}개`;
+          cell.appendChild(cnt);
         }
         el.calGrid.appendChild(cell);
       }
@@ -2611,6 +2653,63 @@
       const mq = window.matchMedia("(display-mode: standalone)");
       if (mq.addEventListener) mq.addEventListener("change", refreshInstallBtn);
     }
+
+    /* ===== 데이터 백업(내보내기/가져오기) ===== */
+    const backupEl = {
+      export: document.getElementById("exportBtn"),
+      import: document.getElementById("importBtn"),
+      file: document.getElementById("importFile"),
+    };
+
+    // 내보내기: 전체 state(할 일+카테고리+설정)를 날짜 포함 파일명으로 다운로드
+    backupEl.export.addEventListener("click", () => {
+      const json = JSON.stringify(state, null, 2);
+      const blob = new Blob([json], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `todo-backup-${todayStr()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showInstallToast("백업을 내보냈어요 ✓");
+    });
+
+    // 가져오기: 파일 선택 → 형식 검증 → 확인 → 복원
+    backupEl.import.addEventListener("click", () => backupEl.file.click());
+    backupEl.file.addEventListener("change", () => {
+      const f = backupEl.file.files && backupEl.file.files[0];
+      if (!f) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        let parsed = null;
+        try { parsed = JSON.parse(reader.result); } catch (e) { parsed = null; }
+        // 형식 검증(안 맞으면 기존 데이터는 손대지 않음)
+        const valid = parsed && Array.isArray(parsed.categories) && parsed.categories.length >= 1
+          && Array.isArray(parsed.tasks);
+        if (!valid) {
+          backupEl.file.value = "";
+          showInstallToast("올바른 백업 파일이 아니에요");
+          return;
+        }
+        confirmDialog("현재 데이터를 불러온 파일로 덮어씁니다. 계속할까요?",
+          { heading: "백업 가져오기", okLabel: "덮어쓰기", okClass: "btn-primary" }
+        ).then((ok) => {
+          backupEl.file.value = "";
+          if (!ok) return;
+          state = parsed;
+          if (!state.selectedDate) state.selectedDate = todayStr();
+          save();
+          calView = monthOf(state.selectedDate);
+          refreshCategoryUI();
+          render();
+          showInstallToast("백업을 불러왔어요 ✓");
+        });
+      };
+      reader.onerror = () => { backupEl.file.value = ""; showInstallToast("파일을 읽지 못했어요"); };
+      reader.readAsText(f);
+    });
 
     /* 첫 렌더 */
     refreshCategoryUI();   // 범례 + 관리 목록
