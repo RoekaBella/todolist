@@ -1,11 +1,15 @@
 /* To Do List 서비스워커 — 앱셸 캐시(상대경로) + 오프라인 동작 */
-const CACHE = "todolist-v4";
+const CACHE = "todolist-v5";
 const ASSETS = [
   "./",
   "./index.html",
   "./manifest.json",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
+  "./icons/icon-192-maskable.png",
+  "./icons/icon-512-maskable.png",
+  "./screenshots/screenshot-wide.png",
+  "./screenshots/screenshot-mobile.png",
 ];
 
 self.addEventListener("install", (e) => {
