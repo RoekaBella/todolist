@@ -828,6 +828,67 @@
       border-radius: 999px;
       box-shadow: var(--shadow);
     }
+    /* 앱 설치 버튼(좌측 최상단 고정) */
+    .btn.install-btn {
+      position: fixed;
+      top: 14px;
+      left: 14px;
+      z-index: 45;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 5px 12px;
+      border-radius: 999px;
+      box-shadow: var(--shadow);
+    }
+    .btn.install-btn[hidden] { display: none; }
+
+    /* 설치 안내 모달(그림 단계) */
+    .install-modal { max-width: 380px; }
+    .install-modal h3 { text-align: center; }
+    .install-steps {
+      list-style: none;
+      margin: 6px 0 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .install-steps li {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 15.5px;
+      line-height: 1.5;
+      color: var(--ink);
+    }
+    .step-num {
+      flex: 0 0 auto;
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+      font-size: 14px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .step-ico {
+      flex: 0 0 auto;
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      background: var(--bg-soft);
+      border: 1px solid var(--line);
+      color: var(--accent);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .step-ico svg { width: 26px; height: 26px; }
+    .step-txt { flex: 1; }
+    .step-txt b { color: var(--accent); }
+    .install-hint {
+      text-align: center;
+      font-size: 13px;
+      color: var(--ink-3);
+      margin: 16px 0 0;
+    }
     /* QR 공유 모달 */
     .share-modal { max-width: 340px; text-align: center; }
     .qr-box {
@@ -864,14 +925,17 @@
       .search-wrap { width: 100%; max-width: none; flex: 1 1 auto; }
       .search { width: 100%; }
 
-      /* 공유 버튼: 항상 화면 안, 약간 축소 */
+      /* 상단 고정 버튼: 항상 화면 안, 약간 축소 */
       .btn.share-btn { top: 10px; right: 10px; padding: 4px 10px; font-size: 11px; }
+      .btn.install-btn { top: 10px; left: 10px; padding: 4px 10px; font-size: 11px; }
 
       .card-actions { flex-direction: column; gap: 6px; }
     }
   </style>
 </head>
 <body>
+  <!-- 앱 설치 버튼: 좌측 최상단 고정(설치됨/standalone이면 숨김) -->
+  <button class="btn btn-primary install-btn" type="button" id="installBtn">📲 앱 설치</button>
   <!-- 공유 버튼: 우측 최상단 고정 -->
   <button class="btn btn-ghost share-btn" type="button" id="shareBtn">🔗 공유</button>
 
@@ -1033,6 +1097,20 @@
       </div>
     </div>
   </div>
+
+  <!-- 앱 설치 안내 모달(미지원 브라우저용 그림 안내) -->
+  <div class="modal-backdrop" id="installModal" hidden>
+    <div class="modal install-modal" role="dialog" aria-modal="true" aria-labelledby="installHeading">
+      <h3 id="installHeading">홈 화면에 앱 추가하기</h3>
+      <div id="installSteps"></div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" type="button" id="installClose">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 설치 완료 토스트 -->
+  <div class="toast" id="installToast" hidden><span id="installToastMsg"></span></div>
 
   <script>
     "use strict";
@@ -2418,6 +2496,121 @@
       shareEl.copy.textContent = ok ? "복사됨 ✓" : "복사 실패";
       setTimeout(() => { shareEl.copy.textContent = prev; }, 1500);
     });
+
+    /* ===== 앱 설치 유도 ===== */
+    const installEl = {
+      btn: document.getElementById("installBtn"),
+      modal: document.getElementById("installModal"),
+      steps: document.getElementById("installSteps"),
+      close: document.getElementById("installClose"),
+      toast: document.getElementById("installToast"),
+      toastMsg: document.getElementById("installToastMsg"),
+    };
+    let deferredPrompt = null;
+
+    function isStandalone() {
+      return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches)
+        || window.navigator.standalone === true;
+    }
+    function refreshInstallBtn() { installEl.btn.hidden = isStandalone(); }
+
+    // 지원 브라우저: 설치 가능 시점에 이벤트 저장
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      refreshInstallBtn();
+    });
+    // 설치 완료
+    window.addEventListener("appinstalled", () => {
+      deferredPrompt = null;
+      installEl.btn.hidden = true;
+      showInstallToast("설치되었습니다 ✓");
+    });
+
+    let installToastTimer = null;
+    function showInstallToast(msg) {
+      clearTimeout(installToastTimer);
+      installEl.toastMsg.textContent = msg;
+      installEl.toast.hidden = false;
+      installToastTimer = setTimeout(() => { installEl.toast.hidden = true; }, 2500);
+    }
+
+    // 환경 감지
+    function detectPlatform() {
+      const ua = navigator.userAgent || "";
+      if (/iphone|ipad|ipod/i.test(ua)) return "ios";
+      if (/android/i.test(ua)) return "android";
+      return "other";
+    }
+
+    // 인라인 SVG 아이콘
+    const SVG = {
+      share: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4"/><path d="M8 8l4-4 4 4"/><path d="M5 12v7a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-7"/></svg>',
+      plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3.5"/><path d="M12 9v6M9 12h6"/></svg>',
+      dots: '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg>',
+    };
+
+    function buildSteps(platform) {
+      let steps;
+      if (platform === "ios") {
+        steps = [
+          [SVG.share, '화면 <b>하단의 공유 버튼</b>(⬆️)을 누르세요.'],
+          [SVG.plus, '메뉴를 내려 <b>“홈 화면에 추가”</b>를 누르세요.'],
+        ];
+      } else if (platform === "android") {
+        steps = [
+          [SVG.dots, '오른쪽 위 <b>메뉴(⋮ 또는 ≡)</b>를 누르세요.'],
+          [SVG.plus, '목록에서 <b>“홈 화면에 추가”</b>를 누르세요.'],
+        ];
+      } else {
+        steps = [
+          [SVG.dots, '브라우저 <b>메뉴</b>를 누르세요.'],
+          [SVG.plus, '<b>“홈 화면에 추가”</b> 또는 <b>“앱 설치”</b>를 누르세요.'],
+        ];
+      }
+      const ol = document.createElement("ol");
+      ol.className = "install-steps";
+      steps.forEach((s, i) => {
+        const li = document.createElement("li");
+        li.innerHTML = '<span class="step-num">' + (i + 1) + '</span>'
+          + '<span class="step-ico">' + s[0] + '</span>'
+          + '<span class="step-txt">' + s[1] + '</span>';
+        ol.appendChild(li);
+      });
+      const hint = document.createElement("p");
+      hint.className = "install-hint";
+      hint.textContent = "추가하면 홈 화면 아이콘으로 바로 열 수 있어요.";
+      installEl.steps.innerHTML = "";
+      installEl.steps.appendChild(ol);
+      installEl.steps.appendChild(hint);
+    }
+
+    function openInstallModal() {
+      buildSteps(detectPlatform());
+      installEl.modal.hidden = false;
+    }
+    function closeInstallModal() { installEl.modal.hidden = true; }
+
+    installEl.btn.addEventListener("click", async () => {
+      if (deferredPrompt) {
+        // 지원 브라우저: 브라우저 기본 설치창
+        deferredPrompt.prompt();
+        try { await deferredPrompt.userChoice; } catch (e) {}
+        deferredPrompt = null;
+        return;
+      }
+      // 미지원(삼성 인터넷·iOS 사파리 등): 그림 안내
+      openInstallModal();
+    });
+    installEl.close.addEventListener("click", closeInstallModal);
+    installEl.modal.addEventListener("click", (e) => { if (e.target === installEl.modal) closeInstallModal(); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !installEl.modal.hidden) closeInstallModal(); });
+
+    refreshInstallBtn();
+    if (window.matchMedia) {
+      const mq = window.matchMedia("(display-mode: standalone)");
+      if (mq.addEventListener) mq.addEventListener("change", refreshInstallBtn);
+    }
 
     /* 첫 렌더 */
     refreshCategoryUI();   // 범례 + 관리 목록
