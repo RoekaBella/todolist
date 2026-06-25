@@ -31,12 +31,6 @@
       /* 강조 */
       --accent: #5B6CFF;
 
-      /* 카테고리 파스텔 */
-      --cat-work: #C7E0FF;   /* 업무(기타 회색과 구분되도록 또렷한 하늘색) */
-      --cat-life: #FFF1C2;   /* 일상 */
-      --cat-study: #FFE0EC;  /* 공부 */
-      --cat-etc: #E8ECF2;    /* 기타 */
-
       /* 보더 / 그림자 */
       --line: #EDF0F5;
       --shadow: 0 1px 2px rgba(31, 36, 51, 0.04), 0 8px 24px rgba(31, 36, 51, 0.05);
@@ -93,22 +87,6 @@
       border-radius: var(--radius-lg);
       box-shadow: var(--shadow);
       padding: 16px 22px;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: 700;
-      font-size: 18px;
-      white-space: nowrap;
-    }
-
-    .brand .dot {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: var(--accent);
     }
 
     .search {
@@ -198,14 +176,6 @@
       padding: 20px;
     }
 
-    .panel-title {
-      margin: 0 0 14px;
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--ink-2);
-      letter-spacing: 0.02em;
-    }
-
     /* 보드: 세로 스택(할 일 → 진행중 → 완료) */
     .board {
       display: flex;
@@ -251,20 +221,6 @@
     .group-icon {
       font-size: 15px;
       line-height: 1;
-    }
-
-    .column-body {
-      flex: 1;
-      border-radius: var(--radius-md);
-      background: var(--bg-soft);
-      border: 1px dashed var(--line);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--ink-3);
-      font-size: 13px;
-      padding: 16px;
-      text-align: center;
     }
 
     /* ===== 입력 필드 ===== */
@@ -947,6 +903,64 @@
       margin-bottom: 16px;
     }
 
+    /* 알림 시점 선택(태스크 모달) */
+    .reminder-opts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+      margin: 6px 0 16px;
+    }
+    .rem-opt {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 13px;
+      color: var(--ink);
+      cursor: pointer;
+      user-select: none;
+    }
+    .rem-opt input { accent-color: var(--accent); width: 15px; height: 15px; cursor: pointer; }
+    .rem-opt.rem-none { color: var(--ink-2); }
+
+    /* 다가온 할 일 알림 모달 */
+    .alert-modal { max-width: 380px; }
+    .alert-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin: 4px 0 4px;
+      max-height: 50vh;
+      overflow-y: auto;
+    }
+    .alert-item {
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--accent);
+      border-radius: var(--radius-sm);
+      background: var(--bg-soft);
+      padding: 9px 12px;
+    }
+    .alert-item .ai-title { font-size: 14px; font-weight: 600; color: var(--ink); word-break: break-word; }
+    .alert-item .ai-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; font-size: 11.5px; color: var(--ink-2); }
+    .alert-item .ai-when {
+      font-weight: 700;
+      color: var(--accent);
+      background: #E6EAFF;
+      border-radius: 999px;
+      padding: 1px 8px;
+    }
+    .alert-actions { align-items: center; gap: 12px; }
+    .alert-skip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-right: auto;
+      font-size: 12.5px;
+      color: var(--ink-2);
+      cursor: pointer;
+      user-select: none;
+    }
+    .alert-skip input { accent-color: var(--accent); width: 14px; height: 14px; cursor: pointer; }
+
     /* ===== 모바일(≤600px): 상단 세로 적층 ===== */
     @media (max-width: 600px) {
       /* 1행: 카테고리줄 / 2행: 검색(전폭) — 좌우 2분할 해제 */
@@ -1059,11 +1073,31 @@
         <label>상세 내용
           <textarea class="field" id="editMemo" placeholder="상세 내용 (선택)"></textarea>
         </label>
+        <span class="field-label">알림 시점 (날짜 기준, 여러 개 선택 가능)</span>
+        <div class="reminder-opts" id="reminderOpts">
+          <label class="rem-opt"><input type="checkbox" value="7d" /> 일주일 전</label>
+          <label class="rem-opt"><input type="checkbox" value="3d" /> 3일 전</label>
+          <label class="rem-opt"><input type="checkbox" value="1d" /> 1일 전</label>
+          <label class="rem-opt"><input type="checkbox" value="today" /> 당일</label>
+          <label class="rem-opt rem-none"><input type="checkbox" value="none" data-none="1" /> 알림 제외</label>
+        </div>
         <div class="modal-actions">
           <button class="btn btn-ghost" type="button" id="editCancel">취소</button>
           <button class="btn btn-primary" type="submit">저장</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- 다가온 할 일 알림 모달(앱 열 때) -->
+  <div class="modal-backdrop" id="alertModal" hidden>
+    <div class="modal alert-modal" role="dialog" aria-modal="true" aria-labelledby="alertHeading">
+      <h3 id="alertHeading">🔔 다가온 할 일</h3>
+      <div id="alertList" class="alert-list"></div>
+      <div class="modal-actions alert-actions">
+        <label class="alert-skip"><input type="checkbox" id="alertSkipToday" /> 오늘 하루 안 보기</label>
+        <button class="btn btn-primary" type="button" id="alertClose">닫기</button>
+      </div>
     </div>
   </div>
 
@@ -1276,7 +1310,7 @@
     }
 
     /* 추가: status='todo'로 해당 날짜 '할 일' 최하단에 */
-    function addTask({ title, memo, categoryId, date }) {
+    function addTask({ title, memo, categoryId, date, reminders }) {
       const t = {
         id: uid(),
         title: title.trim(),
@@ -1284,6 +1318,7 @@
         categoryId: categoryId,
         status: "todo",
         date: date,
+        reminders: Array.isArray(reminders) ? reminders : [],
         order: nextOrder("todo", date),
         createdAt: nowISO(),
         updatedAt: nowISO(),
@@ -1306,6 +1341,7 @@
       if (patch.memo !== undefined) t.memo = patch.memo.trim();
       if (patch.categoryId !== undefined) t.categoryId = patch.categoryId;
       if (patch.date !== undefined) t.date = patch.date;
+      if (patch.reminders !== undefined) t.reminders = Array.isArray(patch.reminders) ? patch.reminders : [];
       t.updatedAt = nowISO();
       save();
       render();
@@ -1351,7 +1387,7 @@
       "#DDF3E4", // 민트
       "#EADCFF", // 라벤더
       "#FFE6D2", // 피치
-      "#FFC4A3", // 살구(채도 한 단계 ↑) — 분홍과 한눈에 구분
+      "#A7E0D8", // 청록(teal) — 기존 어떤 계열과도 안 겹침
     ];
 
     function nextCategoryOrder() {
@@ -1417,7 +1453,13 @@
       editCategory: document.getElementById("editCategory"),
       editDate: document.getElementById("editDate"),
       editMemo: document.getElementById("editMemo"),
+      reminderOpts: document.getElementById("reminderOpts"),
       editCancel: document.getElementById("editCancel"),
+      // 다가온 할 일 알림
+      alertModal: document.getElementById("alertModal"),
+      alertList: document.getElementById("alertList"),
+      alertSkipToday: document.getElementById("alertSkipToday"),
+      alertClose: document.getElementById("alertClose"),
       toast: document.getElementById("toast"),
       toastMsg: document.getElementById("toastMsg"),
       toastUndo: document.getElementById("toastUndo"),
@@ -2002,6 +2044,32 @@
     /* ===== 할 일 추가/수정 모달(공용) ===== */
     let editingTaskId = null; // null이면 추가 모드
 
+    /* ----- 알림 시점 체크박스 헬퍼 ----- */
+    const REMINDER_KEYS = ["7d", "3d", "1d", "today"];
+    function remInputs() { return [...el.reminderOpts.querySelectorAll("input")]; }
+    function setReminderChecks(reminders) {
+      const set = new Set(Array.isArray(reminders) ? reminders : []);
+      remInputs().forEach((inp) => {
+        if (inp.dataset.none) inp.checked = set.size === 0;     // 알림 제외 = 선택 없음
+        else inp.checked = set.has(inp.value);
+      });
+    }
+    function getReminderValues() {
+      return remInputs().filter((i) => i.checked && !i.dataset.none).map((i) => i.value);
+    }
+    // '알림 제외'는 단독: 켜면 나머지 해제 / 다른 걸 켜면 제외 해제. 모두 꺼지면 제외 자동 켜짐
+    el.reminderOpts.addEventListener("change", (e) => {
+      const t = e.target;
+      if (t.dataset.none) {
+        if (t.checked) remInputs().forEach((i) => { if (!i.dataset.none) i.checked = false; });
+        else if (getReminderValues().length === 0) t.checked = true; // 제외를 끄려 해도 선택 없으면 유지
+      } else {
+        const none = remInputs().find((i) => i.dataset.none);
+        if (t.checked) none.checked = false;
+        else if (getReminderValues().length === 0) none.checked = true;
+      }
+    });
+
     function openTaskModal(id) {
       editingTaskId = id || null;
       if (id) {
@@ -2012,13 +2080,15 @@
         el.editMemo.value = t.memo || "";
         el.editDate.value = t.date;
         fillCategoryOptions(el.editCategory, t.categoryId);
+        setReminderChecks(t.reminders);
       } else {
-        // 추가: 기본 카테고리=첫 항목, 날짜=현재 selectedDate
+        // 추가: 기본 카테고리=첫 항목, 날짜=현재 selectedDate, 알림 없음
         el.editHeading.textContent = "할 일 추가";
         el.editTitle.value = "";
         el.editMemo.value = "";
         el.editDate.value = state.selectedDate;
         fillCategoryOptions(el.editCategory, state.categories[0] && state.categories[0].id);
+        setReminderChecks([]);
       }
       el.editTitle.classList.remove("invalid");
       el.editModal.hidden = false;
@@ -2042,6 +2112,7 @@
         memo: el.editMemo.value,
         categoryId: el.editCategory.value || (state.categories[0] && state.categories[0].id),
         date: el.editDate.value || state.selectedDate,
+        reminders: getReminderValues(),
       };
       if (editingTaskId) updateTask(editingTaskId, payload);
       else addTask(payload); // status='todo'로 '할 일' 최하단에 추가
@@ -2057,6 +2128,7 @@
       else if (!el.categoryModal.hidden) closeCategoryModal();
       else if (!el.manageModal.hidden) closeManageModal();
       else if (!el.editModal.hidden) closeTaskModal();
+      else if (!el.alertModal.hidden) closeAlert();
       else if (!el.searchResults.hidden) closeSearch();
     });
 
@@ -2718,9 +2790,82 @@
       reader.readAsText(f);
     });
 
+    /* ===== 다가온 할 일 알림(앱 열 때 1회) ===== */
+    const REMINDER_OFFSET = { "7d": 7, "3d": 3, "1d": 1, "today": 0 };
+
+    // 등록 날짜(date)가 오늘로부터 며칠 뒤인지(음수=지난날)
+    function daysUntil(dateStr) {
+      const [y, m, d] = dateStr.split("-").map(Number);
+      const target = new Date(y, m - 1, d); target.setHours(0, 0, 0, 0);
+      const now = new Date(); now.setHours(0, 0, 0, 0);
+      return Math.round((target - now) / 86400000);
+    }
+
+    // 알림 조건에 걸린 미완료 할 일 수집(가까운 순)
+    function collectDueTasks() {
+      const out = [];
+      state.tasks.forEach((t) => {
+        if (t.status === "done") return;
+        const rem = Array.isArray(t.reminders) ? t.reminders : [];
+        if (rem.length === 0) return;
+        const dd = daysUntil(t.date);
+        if (dd < 0) return; // 이미 지난 날짜는 '다가온 할 일' 아님
+        if (rem.some((r) => REMINDER_OFFSET[r] === dd)) out.push({ task: t, dd });
+      });
+      out.sort((a, b) => a.dd - b.dd);
+      return out;
+    }
+
+    function buildAlertList(due) {
+      el.alertList.innerHTML = "";
+      due.forEach(({ task, dd }) => {
+        const cat = getCategory(task.categoryId);
+        const item = document.createElement("div");
+        item.className = "alert-item";
+        const title = document.createElement("div");
+        title.className = "ai-title";
+        title.textContent = task.title;
+        item.appendChild(title);
+        const meta = document.createElement("div");
+        meta.className = "ai-meta";
+        const when = document.createElement("span");
+        when.className = "ai-when";
+        when.textContent = dd === 0 ? "오늘" : `${dd}일 뒤`;
+        meta.appendChild(when);
+        if (cat) {
+          const chip = document.createElement("span");
+          chip.className = "cat-chip";
+          chip.textContent = cat.name;
+          chip.style.background = cat.color;
+          meta.appendChild(chip);
+        }
+        const date = document.createElement("span");
+        date.textContent = task.date;
+        meta.appendChild(date);
+        item.appendChild(meta);
+        el.alertList.appendChild(item);
+      });
+    }
+
+    function maybeShowAlerts() {
+      const due = collectDueTasks();
+      if (due.length === 0) return;                       // 걸린 게 없으면 안 띄움
+      if (state.alertLastShown === todayStr()) return;    // '오늘 하루 안 보기' 적용됨
+      buildAlertList(due);
+      el.alertSkipToday.checked = false;
+      el.alertModal.hidden = false;
+    }
+    function closeAlert() {
+      if (el.alertSkipToday.checked) { state.alertLastShown = todayStr(); save(); }
+      el.alertModal.hidden = true;
+    }
+    el.alertClose.addEventListener("click", closeAlert);
+    el.alertModal.addEventListener("click", (e) => { if (e.target === el.alertModal) closeAlert(); });
+
     /* 첫 렌더 */
     refreshCategoryUI();   // 범례 + 관리 목록
     render();
+    maybeShowAlerts();     // 앱 열 때 다가온 할 일 팝업
 
     // 디버깅/다음 단계 연동을 위해 노출
     window.TodoApp = {

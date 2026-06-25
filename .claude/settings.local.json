@@ -12,7 +12,10 @@
       "PowerShell(git fetch origin 2>&1)",
       "PowerShell(\"=== fetch ===\")",
       "PowerShell(\"=== remote branches ===\")",
-      "WebFetch(domain:roekabella.github.io)"
+      "WebFetch(domain:roekabella.github.io)",
+      "Bash(awk '{print $2}')",
+      "Bash(read f *)",
+      "Bash(grep -oE '\\\\b__TRACKED_VAR__\\\\b' index.html)"
     ]
   }
 }
