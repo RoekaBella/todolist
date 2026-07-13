@@ -1045,6 +1045,15 @@
         <div class="card-list" id="list-doing"></div>
       </div>
 
+      <div class="column" data-status="followup">
+        <div class="column-head">
+          <span class="group-icon" aria-hidden="true">📣</span>
+          <h2>팔로업</h2>
+          <span class="count" id="count-followup">0</span>
+        </div>
+        <div class="card-list" id="list-followup"></div>
+      </div>
+
       <div class="column" data-status="done">
         <div class="column-head">
           <span class="group-icon" aria-hidden="true">✅</span>
@@ -1290,7 +1299,7 @@
      * 모든 변경은 즉시 save() 후 render() 한다.
      * ========================================================= */
 
-    const STATUSES = ["todo", "doing", "done"];
+    const STATUSES = ["todo", "doing", "followup", "done"];
 
     function nowISO() { return new Date().toISOString(); }
 
@@ -1439,11 +1448,13 @@
       lists: {
         todo: document.getElementById("list-todo"),
         doing: document.getElementById("list-doing"),
+        followup: document.getElementById("list-followup"),
         done: document.getElementById("list-done"),
       },
       counts: {
         todo: document.getElementById("count-todo"),
         doing: document.getElementById("count-doing"),
+        followup: document.getElementById("count-followup"),
         done: document.getElementById("count-done"),
       },
       editModal: document.getElementById("editModal"),
@@ -1491,11 +1502,12 @@
       searchResults: document.getElementById("searchResults"),
     };
 
-    const STATUS_LABEL = { todo: "할 일", doing: "진행중", done: "완료" };
+    const STATUS_LABEL = { todo: "할 일", doing: "진행중", followup: "팔로업", done: "완료" };
 
     const EMPTY_TEXT = {
       todo: "할 일을 추가해 보세요",
       doing: "여기서 진행 중인 일을 모아 보세요",
+      followup: "회신·확인 대기 중인 일을 모아 보세요",
       done: "완료하면 여기에 쌓여요",
     };
 
@@ -1567,6 +1579,17 @@
       doingLabel.appendChild(doing);
       doingLabel.appendChild(document.createTextNode("진행중"));
       controls.appendChild(doingLabel);
+
+      // 팔로업 토글
+      const followLabel = document.createElement("label");
+      followLabel.className = "toggle";
+      const follow = document.createElement("input");
+      follow.type = "checkbox";
+      follow.dataset.action = "followup";
+      follow.checked = t.status === "followup";
+      followLabel.appendChild(follow);
+      followLabel.appendChild(document.createTextNode("팔로업"));
+      controls.appendChild(followLabel);
 
       left.appendChild(controls);
       card.appendChild(left);
@@ -1850,10 +1873,12 @@
       const action = input.dataset.action;
 
       if (action === "done") {
-        // 완료가 우선: 켜면 done, 끄면 todo
+        // 완료가 우선: 켜면 done, 끄면 todo(팔로업 등에서도 완료 시 곧바로 완료로)
         setStatus(id, input.checked ? "done" : "todo");
       } else if (action === "doing") {
         setStatus(id, input.checked ? "doing" : "todo");
+      } else if (action === "followup") {
+        setStatus(id, input.checked ? "followup" : "todo");
       }
     });
 
