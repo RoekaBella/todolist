@@ -2149,9 +2149,7 @@
       closeTaskModal();
     });
     el.editCancel.addEventListener("click", closeTaskModal);
-    el.editModal.addEventListener("click", (e) => {
-      if (e.target === el.editModal) closeTaskModal();
-    });
+    // 바깥 오버레이 클릭으로는 닫지 않음(취소/저장·ESC로만 닫힘)
     document.addEventListener("keydown", (e) => {
       if (e.key !== "Escape") return;
       if (!el.confirmModal.hidden) settleConfirm(false);
