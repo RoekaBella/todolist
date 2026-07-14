@@ -2187,12 +2187,12 @@
       const { year, month } = calView;
       el.calTitle.textContent = `${year}년 ${month + 1}월`;
 
-      // 날짜별 개수: total=전체(완료 포함), remain=남은(todo+doing만; done·followup 제외)
+      // 날짜별 개수: total=전체(완료 포함), remain=남은(done 아닌 전부 = todo+doing+followup)
       const counts = {};
       state.tasks.forEach((t) => {
         const c = counts[t.date] || (counts[t.date] = { total: 0, remain: 0 });
         c.total += 1;
-        if (t.status === "todo" || t.status === "doing") c.remain += 1;
+        if (t.status !== "done") c.remain += 1;
       });
 
       const today = todayStr();
