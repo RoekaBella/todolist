@@ -200,8 +200,18 @@
       margin-bottom: 14px;
     }
     .column-head .head-spacer { flex: 1; }
-    /* [+ 추가] 버튼: 카테고리 칩과 동일 크기(.btn 기본값을 이기도록 특이도 ↑) */
-    .btn.add-task-btn { font-size: 12px; font-weight: 600; padding: 3px 10px; }
+    /* [+ 추가] 플로팅 버튼(FAB): 우측 하단 고정 */
+    .btn.add-task-btn {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      z-index: 46;
+      font-size: 15px;
+      font-weight: 700;
+      padding: 12px 20px;
+      border-radius: 999px;
+      box-shadow: 0 8px 22px rgba(91, 108, 255, 0.35);
+    }
 
     .column-head h2 {
       margin: 0;
@@ -977,6 +987,8 @@
       /* 상단 고정 버튼: 항상 화면 안, 약간 축소 */
       .btn.share-btn { top: 10px; right: 10px; padding: 4px 10px; font-size: 11px; }
       .btn.install-btn { top: 10px; left: 10px; padding: 4px 10px; font-size: 11px; }
+      /* FAB: 모바일에선 약간 작게·안쪽으로 */
+      .btn.add-task-btn { right: 14px; bottom: 14px; padding: 11px 18px; font-size: 14px; }
 
       .card-actions { flex-direction: column; gap: 6px; }
     }
@@ -987,6 +999,8 @@
   <button class="btn btn-primary install-btn" type="button" id="installBtn">📲 앱 설치</button>
   <!-- 공유 버튼: 우측 최상단 고정 -->
   <button class="btn btn-ghost share-btn" type="button" id="shareBtn">🔗 공유</button>
+  <!-- 할 일 추가: 우측 하단 플로팅 버튼(FAB) -->
+  <button class="btn btn-primary add-task-btn" type="button" id="addTaskBtn">+ 추가</button>
 
   <div class="app">
     <!-- 앱 제목 + 제작자명(하나의 로고 블록) -->
@@ -1035,8 +1049,6 @@
           <span class="group-icon" aria-hidden="true">📋</span>
           <h2>할 일</h2>
           <span class="count" id="count-todo">0</span>
-          <span class="head-spacer"></span>
-          <button class="btn btn-primary add-task-btn" type="button" id="addTaskBtn">+ 추가</button>
         </div>
         <div class="card-list" id="list-todo"></div>
       </div>
@@ -1080,6 +1092,14 @@
         </label>
         <label>카테고리
           <select class="field" id="editCategory"></select>
+        </label>
+        <label>상태
+          <select class="field" id="editStatus">
+            <option value="todo">할 일</option>
+            <option value="doing">진행중</option>
+            <option value="followup">팔로업</option>
+            <option value="done">완료</option>
+          </select>
         </label>
         <label>날짜
           <input class="field" type="date" id="editDate" />
@@ -1324,16 +1344,17 @@
     }
 
     /* 추가: status='todo'로 해당 날짜 '할 일' 최하단에 */
-    function addTask({ title, memo, categoryId, date, reminders }) {
+    function addTask({ title, memo, categoryId, date, reminders, status }) {
+      const st = STATUSES.includes(status) ? status : "todo";
       const t = {
         id: uid(),
         title: title.trim(),
         memo: (memo || "").trim(),
         categoryId: categoryId,
-        status: "todo",
+        status: st,
         date: date,
         reminders: Array.isArray(reminders) ? reminders : [],
-        order: nextOrder("todo", date),
+        order: nextOrder(st, date),
         createdAt: nowISO(),
         updatedAt: nowISO(),
       };
@@ -1347,15 +1368,18 @@
     function updateTask(id, patch) {
       const t = state.tasks.find((x) => x.id === id);
       if (!t) return;
-      // 날짜가 바뀌면 '할 일' 기준으로 위치 재배치
-      if (patch.date && patch.date !== t.date) {
-        t.order = nextOrder(t.status, patch.date);
+      const newStatus = (patch.status !== undefined && STATUSES.includes(patch.status)) ? patch.status : t.status;
+      const newDate = patch.date !== undefined ? patch.date : t.date;
+      // 상태나 날짜가 바뀌면 대상 그룹 최하단으로 재배치(t.status/t.date 변경 전에 계산)
+      if (newStatus !== t.status || newDate !== t.date) {
+        t.order = nextOrder(newStatus, newDate);
       }
       if (patch.title !== undefined) t.title = patch.title.trim();
       if (patch.memo !== undefined) t.memo = patch.memo.trim();
       if (patch.categoryId !== undefined) t.categoryId = patch.categoryId;
       if (patch.date !== undefined) t.date = patch.date;
       if (patch.reminders !== undefined) t.reminders = Array.isArray(patch.reminders) ? patch.reminders : [];
+      t.status = newStatus;
       t.updatedAt = nowISO();
       save();
       render();
@@ -1467,6 +1491,7 @@
       editHeading: document.getElementById("editHeading"),
       editTitle: document.getElementById("editTitle"),
       editCategory: document.getElementById("editCategory"),
+      editStatus: document.getElementById("editStatus"),
       editDate: document.getElementById("editDate"),
       editMemo: document.getElementById("editMemo"),
       reminderOpts: document.getElementById("reminderOpts"),
@@ -2110,14 +2135,16 @@
         el.editMemo.value = t.memo || "";
         el.editDate.value = t.date;
         fillCategoryOptions(el.editCategory, t.categoryId);
+        el.editStatus.value = STATUSES.includes(t.status) ? t.status : "todo";
         setReminderChecks(t.reminders);
       } else {
-        // 추가: 기본 카테고리=첫 항목, 날짜=현재 selectedDate, 알림 없음
+        // 추가: 기본 카테고리=첫 항목, 상태='할 일', 날짜=현재 selectedDate, 알림 없음
         el.editHeading.textContent = "할 일 추가";
         el.editTitle.value = "";
         el.editMemo.value = "";
         el.editDate.value = state.selectedDate;
         fillCategoryOptions(el.editCategory, state.categories[0] && state.categories[0].id);
+        el.editStatus.value = "todo";
         setReminderChecks([]);
       }
       el.editTitle.classList.remove("invalid");
@@ -2143,9 +2170,10 @@
         categoryId: el.editCategory.value || (state.categories[0] && state.categories[0].id),
         date: el.editDate.value || state.selectedDate,
         reminders: getReminderValues(),
+        status: el.editStatus.value,
       };
       if (editingTaskId) updateTask(editingTaskId, payload);
-      else addTask(payload); // status='todo'로 '할 일' 최하단에 추가
+      else addTask(payload); // 선택한 상태 그룹 최하단에 추가
       closeTaskModal();
     });
     el.editCancel.addEventListener("click", closeTaskModal);
