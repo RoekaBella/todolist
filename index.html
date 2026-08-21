@@ -724,6 +724,9 @@
     .cal-cell.selected .cal-count { color: var(--accent); background: #fff; }
     .cal-cell.selected .cal-count.done-day { color: var(--ink-2); background: #fff; }
 
+    /* 휴무(연차) 날짜: 배지 연회색과 동일한 색으로 칸 전체 채움(선택 파란 배경은 우선) */
+    .cal-cell.is-dayoff:not(.selected) { background: #EDF0F5; }
+
     /* ===== 전체 검색 (작은 고정 폭, 우측) ===== */
     .search-wrap { position: relative; flex: 0 0 260px; width: 260px; max-width: 40%; }
     .search { width: 100%; }
@@ -976,6 +979,24 @@
     }
     .alert-skip input { accent-color: var(--accent); width: 14px; height: 14px; cursor: pointer; }
 
+    /* 휴무(연차) 표시줄: 할 일 목록 위 */
+    .dayoff-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .dayoff-reason {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--ink-2);
+      word-break: break-word;
+    }
+    .dayoff-spacer { flex: 1; }
+    .btn.dayoff-btn { font-size: 12px; font-weight: 600; padding: 5px 12px; }
+
+    /* 휴무 사유 모달 액션 정렬 */
+    .dayoff-modal .modal-actions { align-items: center; }
+
     /* ===== 모바일(≤600px): 상단 세로 적층 ===== */
     @media (max-width: 600px) {
       /* 1행: 카테고리줄 / 2행: 검색(전폭) — 좌우 2분할 해제 */
@@ -1041,6 +1062,13 @@
         <div class="search-results" id="searchResults" role="listbox" hidden></div>
       </div>
     </header>
+
+    <!-- 휴무(연차) 표시줄: 할 일 목록 위 -->
+    <div class="dayoff-bar" id="dayoffBar">
+      <span class="dayoff-reason" id="dayoffReason"></span>
+      <span class="dayoff-spacer"></span>
+      <button class="btn btn-ghost dayoff-btn" type="button" id="dayoffBtn">휴무 지정</button>
+    </div>
 
     <!-- ③ 하단: 할 일 → 진행중 → 완료 (전폭 한 줄 카드, 항상 펼침) -->
     <section class="board" id="board">
@@ -1132,6 +1160,24 @@
         <label class="alert-skip"><input type="checkbox" id="alertSkipToday" /> 오늘 하루 안 보기</label>
         <button class="btn btn-primary" type="button" id="alertClose">닫기</button>
       </div>
+    </div>
+  </div>
+
+  <!-- 휴무(연차) 사유 입력 모달 -->
+  <div class="modal-backdrop" id="dayoffModal" hidden>
+    <div class="modal dayoff-modal" role="dialog" aria-modal="true" aria-labelledby="dayoffHeading">
+      <h3 id="dayoffHeading">휴무 지정</h3>
+      <form id="dayoffForm">
+        <label>사유
+          <input class="field" type="text" id="dayoffInput" placeholder="예: 여름휴가, 오후반차, 연차" />
+        </label>
+        <div class="modal-actions">
+          <button class="btn btn-danger" type="button" id="dayoffClear" hidden>휴무 해제</button>
+          <span class="dayoff-spacer"></span>
+          <button class="btn btn-ghost" type="button" id="dayoffCancel">취소</button>
+          <button class="btn btn-primary" type="submit">저장</button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -1288,6 +1334,8 @@
         state = parsed;
         // selectedDate 누락 방어
         if (!state.selectedDate) state.selectedDate = todayStr();
+        // 휴무 맵 누락 방어(기존 데이터 호환)
+        if (!state.dayoffs || typeof state.dayoffs !== "object") state.dayoffs = {};
         // 업무 기존 하늘색(#DCEBFF)을 또렷한 하늘색(#C7E0FF)으로 1회 마이그레이션
         let migrated = false;
         state.categories.forEach((c) => {
@@ -1301,6 +1349,7 @@
           categories: defaultCategories(),
           tasks: [],
           selectedDate: todayStr(),
+          dayoffs: {},
         };
         save();
       }
@@ -1530,6 +1579,16 @@
       // 검색
       searchInput: document.getElementById("searchInput"),
       searchResults: document.getElementById("searchResults"),
+      // 휴무(연차)
+      dayoffBar: document.getElementById("dayoffBar"),
+      dayoffReason: document.getElementById("dayoffReason"),
+      dayoffBtn: document.getElementById("dayoffBtn"),
+      dayoffModal: document.getElementById("dayoffModal"),
+      dayoffForm: document.getElementById("dayoffForm"),
+      dayoffHeading: document.getElementById("dayoffHeading"),
+      dayoffInput: document.getElementById("dayoffInput"),
+      dayoffClear: document.getElementById("dayoffClear"),
+      dayoffCancel: document.getElementById("dayoffCancel"),
     };
 
     const STATUS_LABEL = { todo: "할 일", doing: "진행중", followup: "팔로업", done: "완료" };
@@ -1682,6 +1741,7 @@
         }
       });
       renderCalendar();                       // 날짜별 점 표시 최신화
+      renderDayoffBar();                      // 선택 날짜의 휴무 표시줄 갱신
       if (searchActive()) renderSearch(el.searchInput.value); // 검색 열린 상태면 갱신
     }
 
@@ -2183,6 +2243,7 @@
       if (!el.confirmModal.hidden) settleConfirm(false);
       else if (!el.categoryModal.hidden) closeCategoryModal();
       else if (!el.manageModal.hidden) closeManageModal();
+      else if (!el.dayoffModal.hidden) closeDayoffModal();
       else if (!el.editModal.hidden) closeTaskModal();
       else if (!el.alertModal.hidden) closeAlert();
       else if (!el.searchResults.hidden) closeSearch();
@@ -2237,13 +2298,15 @@
         if (ds === state.selectedDate) cell.classList.add("selected");
         cell.dataset.date = ds;
         if (ds === state.selectedDate) cell.setAttribute("aria-current", "date");
+        const isDayoff = !!(state.dayoffs && state.dayoffs[ds]);
+        if (isDayoff) cell.classList.add("is-dayoff");
         const day = document.createElement("span");
         day.className = "cal-day";
         day.textContent = d.getDate();
         cell.appendChild(day);
-        // 배지: '남은/총'. 할 일 0개면 표시 안 함. 남은 0이면 '다 끝낸 날'로 톤 구분
+        // 휴무일은 개수 배지를 표시하지 않음. 그 외엔 '남은/총'(0개면 숨김)
         const c = counts[ds];
-        if (c) {
+        if (c && !isDayoff) {
           const cnt = document.createElement("span");
           cnt.className = "cal-count" + (c.remain === 0 ? " done-day" : "");
           cnt.textContent = `${c.remain}/${c.total}`;
@@ -2269,6 +2332,52 @@
     });
     el.calPrev.addEventListener("click", () => { calView = addMonth(calView, -1); renderCalendar(); });
     el.calNext.addEventListener("click", () => { calView = addMonth(calView, 1); renderCalendar(); });
+
+    /* ===== 휴무(연차) 표시 ===== */
+    function dayoffReasonOf(date) {
+      return (state.dayoffs && state.dayoffs[date]) || "";
+    }
+    // 선택 날짜의 휴무 표시줄(사유 텍스트 + 버튼 라벨) 갱신
+    function renderDayoffBar() {
+      const reason = dayoffReasonOf(state.selectedDate);
+      el.dayoffReason.textContent = reason;   // 담백하게 사유만
+      el.dayoffBtn.textContent = reason ? "휴무 해제·수정" : "휴무 지정";
+    }
+    function setDayoff(date, reason) {
+      state.dayoffs[date] = reason;
+      save();
+      render();
+    }
+    function clearDayoff(date) {
+      delete state.dayoffs[date];
+      save();
+      render();
+    }
+
+    // 모달: 취소/저장·ESC로만 닫힘(바깥 클릭 방지)
+    function openDayoffModal() {
+      const reason = dayoffReasonOf(state.selectedDate);
+      el.dayoffHeading.textContent = reason ? "휴무 수정" : "휴무 지정";
+      el.dayoffInput.value = reason;
+      el.dayoffClear.hidden = !reason;         // 이미 휴무면 '휴무 해제' 노출
+      el.dayoffModal.hidden = false;
+      el.dayoffInput.focus();
+    }
+    function closeDayoffModal() { el.dayoffModal.hidden = true; }
+
+    el.dayoffBtn.addEventListener("click", openDayoffModal);
+    el.dayoffCancel.addEventListener("click", closeDayoffModal);
+    el.dayoffForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const reason = el.dayoffInput.value.trim();
+      if (reason) setDayoff(state.selectedDate, reason);
+      else clearDayoff(state.selectedDate);   // 빈 값 저장 = 휴무 해제
+      closeDayoffModal();
+    });
+    el.dayoffClear.addEventListener("click", () => {
+      clearDayoff(state.selectedDate);
+      closeDayoffModal();
+    });
 
     /* ===== 전체 검색 ===== */
 
@@ -2840,6 +2949,7 @@
           if (!ok) return;
           state = parsed;
           if (!state.selectedDate) state.selectedDate = todayStr();
+          if (!state.dayoffs || typeof state.dayoffs !== "object") state.dayoffs = {};
           save();
           calView = monthOf(state.selectedDate);
           refreshCategoryUI();

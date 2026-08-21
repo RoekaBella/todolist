@@ -15,7 +15,13 @@
       "WebFetch(domain:roekabella.github.io)",
       "Bash(awk '{print $2}')",
       "Bash(read f *)",
-      "Bash(grep -oE '\\\\b__TRACKED_VAR__\\\\b' index.html)"
+      "Bash(grep -oE '\\\\b__TRACKED_VAR__\\\\b' index.html)",
+      "mcp__97d79d83-3573-4ff6-943e-11d3b0d6dd2b__NaverSearch-search_blog",
+      "WebSearch",
+      "WebFetch(domain:blog.naver.com)",
+      "WebFetch(domain:www.hwahae.com)",
+      "WebFetch(domain:www.yslbeauty.com.au)",
+      "WebFetch(domain:incidecoder.com)"
     ]
   }
 }
