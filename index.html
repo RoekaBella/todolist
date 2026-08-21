@@ -992,7 +992,16 @@
       word-break: break-word;
     }
     .dayoff-spacer { flex: 1; }
-    .btn.dayoff-btn { font-size: 12px; font-weight: 600; padding: 5px 12px; }
+    /* 휴무 버튼: 투명 배경 + 옅은 글자 + 옅은 테두리, 카테고리 칩 글자 크기 */
+    .btn.dayoff-btn {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 3px 10px;
+      background: transparent;
+      color: var(--ink-3);
+      border: 1px solid var(--line);
+    }
+    .btn.dayoff-btn:hover { background: var(--bg-soft); color: var(--ink-2); }
 
     /* 휴무 사유 모달 액션 정렬 */
     .dayoff-modal .modal-actions { align-items: center; }
@@ -1045,6 +1054,13 @@
       </div>
     </section>
 
+    <!-- 휴무(연차) 줄: 달력과 카테고리 사이(독립 줄, 우측 정렬) -->
+    <div class="dayoff-bar" id="dayoffBar">
+      <span class="dayoff-reason" id="dayoffReason"></span>
+      <span class="dayoff-spacer"></span>
+      <button class="btn dayoff-btn" type="button" id="dayoffBtn">휴무</button>
+    </div>
+
     <!-- ② 카테고리 라벨 + 색 범례 + 관리 (좌) / 검색 (우) -->
     <header class="topbar">
       <div class="topbar-left">
@@ -1062,13 +1078,6 @@
         <div class="search-results" id="searchResults" role="listbox" hidden></div>
       </div>
     </header>
-
-    <!-- 휴무(연차) 표시줄: 할 일 목록 위 -->
-    <div class="dayoff-bar" id="dayoffBar">
-      <span class="dayoff-reason" id="dayoffReason"></span>
-      <span class="dayoff-spacer"></span>
-      <button class="btn btn-ghost dayoff-btn" type="button" id="dayoffBtn">휴무 지정</button>
-    </div>
 
     <!-- ③ 하단: 할 일 → 진행중 → 완료 (전폭 한 줄 카드, 항상 펼침) -->
     <section class="board" id="board">
@@ -2340,8 +2349,7 @@
     // 선택 날짜의 휴무 표시줄(사유 텍스트 + 버튼 라벨) 갱신
     function renderDayoffBar() {
       const reason = dayoffReasonOf(state.selectedDate);
-      el.dayoffReason.textContent = reason;   // 담백하게 사유만
-      el.dayoffBtn.textContent = reason ? "휴무 해제·수정" : "휴무 지정";
+      el.dayoffReason.textContent = reason;   // 담백하게 사유만(버튼 라벨은 항상 '휴무')
     }
     function setDayoff(date, reason) {
       state.dayoffs[date] = reason;
