@@ -984,7 +984,7 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      margin: -9px 0;   /* .app flex gap(20px)을 줄여 위아래로 조용히 끼움 */
+      margin: -14px 0;   /* .app flex gap(20px)을 상쇄해 위아래 빈 공간 최소화 */
     }
     .dayoff-reason {
       font-size: 13.5px;
@@ -995,10 +995,9 @@
     .dayoff-spacer { flex: 1; }
     /* 휴무 버튼: 투명 배경 + 옅은 글자 + 옅은 테두리, 카테고리 칩 글자 크기 */
     .btn.dayoff-btn {
-      font-size: 11.5px;
+      font-size: 12px;
       font-weight: 600;
-      padding: 1px 9px;
-      line-height: 1.4;
+      padding: 3px 10px;
       background: transparent;
       color: var(--ink-3);
       border: 1px solid var(--line);
@@ -1144,7 +1143,7 @@
           <input class="field" type="date" id="editDate" />
         </label>
         <label>상세 내용
-          <textarea class="field" id="editMemo" placeholder="상세 내용 (선택)"></textarea>
+          <textarea class="field" id="editMemo" placeholder=""></textarea>
         </label>
         <span class="field-label">알림 시점 (날짜 기준, 여러 개 선택 가능)</span>
         <div class="reminder-opts" id="reminderOpts">
@@ -1180,7 +1179,7 @@
       <h3 id="dayoffHeading">휴무</h3>
       <form id="dayoffForm">
         <label>사유
-          <input class="field" type="text" id="dayoffInput" placeholder="사유" />
+          <input class="field" type="text" id="dayoffInput" placeholder="" />
         </label>
         <div class="modal-actions">
           <button class="btn btn-danger" type="button" id="dayoffClear" hidden>휴무 해제</button>
