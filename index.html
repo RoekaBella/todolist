@@ -984,6 +984,7 @@
       display: flex;
       align-items: center;
       gap: 10px;
+      margin: -9px 0;   /* .app flex gap(20px)을 줄여 위아래로 조용히 끼움 */
     }
     .dayoff-reason {
       font-size: 13.5px;
@@ -994,9 +995,10 @@
     .dayoff-spacer { flex: 1; }
     /* 휴무 버튼: 투명 배경 + 옅은 글자 + 옅은 테두리, 카테고리 칩 글자 크기 */
     .btn.dayoff-btn {
-      font-size: 12px;
+      font-size: 11.5px;
       font-weight: 600;
-      padding: 3px 10px;
+      padding: 1px 9px;
+      line-height: 1.4;
       background: transparent;
       color: var(--ink-3);
       border: 1px solid var(--line);
@@ -1175,10 +1177,10 @@
   <!-- 휴무(연차) 사유 입력 모달 -->
   <div class="modal-backdrop" id="dayoffModal" hidden>
     <div class="modal dayoff-modal" role="dialog" aria-modal="true" aria-labelledby="dayoffHeading">
-      <h3 id="dayoffHeading">휴무 지정</h3>
+      <h3 id="dayoffHeading">휴무</h3>
       <form id="dayoffForm">
         <label>사유
-          <input class="field" type="text" id="dayoffInput" placeholder="예: 여름휴가, 오후반차, 연차" />
+          <input class="field" type="text" id="dayoffInput" placeholder="사유" />
         </label>
         <div class="modal-actions">
           <button class="btn btn-danger" type="button" id="dayoffClear" hidden>휴무 해제</button>
@@ -2365,7 +2367,7 @@
     // 모달: 취소/저장·ESC로만 닫힘(바깥 클릭 방지)
     function openDayoffModal() {
       const reason = dayoffReasonOf(state.selectedDate);
-      el.dayoffHeading.textContent = reason ? "휴무 수정" : "휴무 지정";
+      el.dayoffHeading.textContent = "휴무";
       el.dayoffInput.value = reason;
       el.dayoffClear.hidden = !reason;         // 이미 휴무면 '휴무 해제' 노출
       el.dayoffModal.hidden = false;
