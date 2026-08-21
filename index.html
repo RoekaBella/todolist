@@ -1006,6 +1006,9 @@
 
     /* 휴무 사유 모달 액션 정렬 */
     .dayoff-modal .modal-actions { align-items: center; }
+    /* 휴무 사유 보기 팝업 텍스트(담백하게) */
+    .dayoff-view-date { margin: 0 0 4px; font-size: 12.5px; color: var(--ink-3); }
+    .dayoff-view-reason { margin: 0 0 18px; font-size: 16px; font-weight: 600; color: var(--ink); word-break: break-word; }
 
     /* ===== 모바일(≤600px): 상단 세로 적층 ===== */
     @media (max-width: 600px) {
@@ -1057,7 +1060,6 @@
 
     <!-- 휴무(연차) 줄: 달력과 카테고리 사이(독립 줄, 우측 정렬) -->
     <div class="dayoff-bar" id="dayoffBar">
-      <span class="dayoff-reason" id="dayoffReason"></span>
       <span class="dayoff-spacer"></span>
       <button class="btn dayoff-btn" type="button" id="dayoffBtn">휴무</button>
     </div>
@@ -1188,6 +1190,18 @@
           <button class="btn btn-primary" type="submit">저장</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- 휴무(연차) 사유 보기 모달 -->
+  <div class="modal-backdrop" id="dayoffViewModal" hidden>
+    <div class="modal dayoff-modal" role="dialog" aria-modal="true" aria-labelledby="dayoffViewHeading">
+      <h3 id="dayoffViewHeading">휴무</h3>
+      <p class="dayoff-view-date" id="dayoffViewDate"></p>
+      <p class="dayoff-view-reason" id="dayoffViewReason"></p>
+      <div class="modal-actions">
+        <button class="btn btn-primary" type="button" id="dayoffViewClose">확인</button>
+      </div>
     </div>
   </div>
 
@@ -1590,8 +1604,6 @@
       searchInput: document.getElementById("searchInput"),
       searchResults: document.getElementById("searchResults"),
       // 휴무(연차)
-      dayoffBar: document.getElementById("dayoffBar"),
-      dayoffReason: document.getElementById("dayoffReason"),
       dayoffBtn: document.getElementById("dayoffBtn"),
       dayoffModal: document.getElementById("dayoffModal"),
       dayoffForm: document.getElementById("dayoffForm"),
@@ -1599,6 +1611,11 @@
       dayoffInput: document.getElementById("dayoffInput"),
       dayoffClear: document.getElementById("dayoffClear"),
       dayoffCancel: document.getElementById("dayoffCancel"),
+      // 휴무 사유 보기
+      dayoffViewModal: document.getElementById("dayoffViewModal"),
+      dayoffViewDate: document.getElementById("dayoffViewDate"),
+      dayoffViewReason: document.getElementById("dayoffViewReason"),
+      dayoffViewClose: document.getElementById("dayoffViewClose"),
     };
 
     const STATUS_LABEL = { todo: "할 일", doing: "진행중", followup: "팔로업", done: "완료" };
@@ -1751,7 +1768,6 @@
         }
       });
       renderCalendar();                       // 날짜별 점 표시 최신화
-      renderDayoffBar();                      // 선택 날짜의 휴무 표시줄 갱신
       if (searchActive()) renderSearch(el.searchInput.value); // 검색 열린 상태면 갱신
     }
 
@@ -2254,6 +2270,7 @@
       else if (!el.categoryModal.hidden) closeCategoryModal();
       else if (!el.manageModal.hidden) closeManageModal();
       else if (!el.dayoffModal.hidden) closeDayoffModal();
+      else if (!el.dayoffViewModal.hidden) closeDayoffView();
       else if (!el.editModal.hidden) closeTaskModal();
       else if (!el.alertModal.hidden) closeAlert();
       else if (!el.searchResults.hidden) closeSearch();
@@ -2333,6 +2350,9 @@
       save();
       calView = monthOf(date);
       render();
+      // 휴무 날짜를 선택하면 사유를 팝업으로 표시
+      const reason = dayoffReasonOf(date);
+      if (reason) openDayoffView(date, reason);
     }
 
     el.calGrid.addEventListener("click", (e) => {
@@ -2347,11 +2367,13 @@
     function dayoffReasonOf(date) {
       return (state.dayoffs && state.dayoffs[date]) || "";
     }
-    // 선택 날짜의 휴무 표시줄(사유 텍스트 + 버튼 라벨) 갱신
-    function renderDayoffBar() {
-      const reason = dayoffReasonOf(state.selectedDate);
-      el.dayoffReason.textContent = reason;   // 담백하게 사유만(버튼 라벨은 항상 '휴무')
+    // 휴무 사유 보기 팝업(확인·ESC로만 닫힘, 바깥 클릭 방지)
+    function openDayoffView(date, reason) {
+      el.dayoffViewDate.textContent = date;
+      el.dayoffViewReason.textContent = reason;
+      el.dayoffViewModal.hidden = false;
     }
+    function closeDayoffView() { el.dayoffViewModal.hidden = true; }
     function setDayoff(date, reason) {
       state.dayoffs[date] = reason;
       save();
@@ -2387,6 +2409,7 @@
       clearDayoff(state.selectedDate);
       closeDayoffModal();
     });
+    el.dayoffViewClose.addEventListener("click", closeDayoffView);
 
     /* ===== 전체 검색 ===== */
 
